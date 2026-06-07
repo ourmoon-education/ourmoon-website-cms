@@ -30,7 +30,10 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          PREVIEW_SECRET: ${{ secrets.PREVIEW_SECRET }}
           NEXT_PUBLIC_SERVER_URL: https://editor.ourmoon.org.uk
+          NEXT_PUBLIC_FRONTEND_URL: https://ourmoon.org.uk
 
       - name: Run migrations
         run: pnpm payload migrate
@@ -39,6 +42,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
 
       - name: Deploy to Cloudflare Workers
         run: pnpm run deploy
@@ -49,4 +53,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          PREVIEW_SECRET: ${{ secrets.PREVIEW_SECRET }}
+          NUXT_REVALIDATE_URL: ${{ secrets.NUXT_REVALIDATE_URL }}
+          NUXT_REVALIDATE_SECRET: ${{ secrets.NUXT_REVALIDATE_SECRET }}
           NEXT_PUBLIC_SERVER_URL: https://editor.ourmoon.org.uk
+          NEXT_PUBLIC_FRONTEND_URL: https://ourmoon.org.uk

@@ -5,92 +5,134 @@ Payload CMS v3 for [Our Moon Education](https://ourmoon.org.uk).
 - **Admin panel**: https://editor.ourmoon.org.uk/admin
 - **Stack**: Next.js · Payload CMS v3 · Supabase Postgres · Azure Blob Storage · Cloudflare Workers
 
-## Local Development
+---
+
+## Quick Start (Local Dev)
 
 ### Prerequisites
 
-- Node.js 22+
-- pnpm 10+
-- A Supabase Postgres database (or local Postgres)
-- Azure Blob Storage account (or skip — uploads will fail locally without it)
+- Node.js 22+, pnpm 10+
+- Supabase Postgres connection string
+- Azure Blob Storage connection string
 
 ### Setup
 
 ```bash
-# 1. Install dependencies
 pnpm install
-
-# 2. Copy env file and fill in values
-cp .env.example .env
-
-# 3. Run database migrations
-pnpm payload migrate
-
-# 4. Start dev server
-pnpm dev
+cp .env.example .env    # fill in values
+pnpm payload migrate    # run DB migrations
+pnpm dev                # start on http://localhost:3000
 ```
 
-Open http://localhost:3000 to see the app. The admin panel is at http://localhost:3000/admin.
+Visit http://localhost:3000/admin to create your first user.
 
-### Environment Variables
+Or seed sample content:
+```bash
+pnpm payload seed
+```
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env`. Key variables:
 
 | Variable | Description |
-|----------|-------------|
-| `DATABASE_URI` | Supabase Cloud Postgres connection string |
-| `DATABASE_URL` | Same as above (alias) |
-| `PAYLOAD_SECRET` | Secret key for Payload CMS |
-| `NEXT_PUBLIC_SERVER_URL` | Public URL of the CMS (e.g. `https://editor.ourmoon.org.uk`) |
-| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage connection string for media uploads |
+|---|---|
+| `DATABASE_URI` / `DATABASE_URL` | Supabase Cloud Postgres |
+| `PAYLOAD_SECRET` | Secret key for Payload |
+| `NEXT_PUBLIC_SERVER_URL` | CMS public URL |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob for media |
+| `SMTP_PASS` | Mailgun SMTP password |
+| `PREVIEW_SECRET` | Shared secret for content preview |
+| `NUXT_REVALIDATE_URL` / `NUXT_REVALIDATE_SECRET` | Nuxt ISR webhooks |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Seed script credentials |
 
-## Deployment
-
-### Cloudflare Workers (production)
-
-Deployments are automated via GitHub Actions on push to `main`.
-
-The workflow:
-1. Installs dependencies
-2. Builds the Next.js app
-3. Runs database migrations against Supabase
-4. Builds the Cloudflare Worker with `opennextjs-cloudflare build`
-5. Deploys with `wrangler deploy`
-
-Required GitHub Actions secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`, `AZURE_STORAGE_CONNECTION_STRING`
-
-To deploy manually:
-```bash
-pnpm run deploy
-```
-
-### Schema Changes
-
-After any schema change, generate and commit a migration before pushing:
-
-```bash
-pnpm payload migrate:create --name describe_your_change
-# commit the file in src/migrations/
-git push
-```
+---
 
 ## Collections
 
 | Collection | Description |
-|------------|-------------|
-| Users | CMS admin users (auth-enabled) |
-| Media | File uploads → Azure Blob Storage |
-| Programmes | Educational programmes offered |
-| Blog Posts | News and blog content |
-| Events | Upcoming events |
-| Student Stories | Testimonials and student spotlights |
-| Site Settings *(global)* | Sitewide config: name, tagline, contact, social links |
+|---|---|
+| **Users** | CMS accounts. Role: `admin` or `editor`. |
+| **Media** | File uploads → Azure Blob. Images auto-resized to thumbnail/card/hero/og. |
+| **Programmes** | Educational programmes. Drafts + autosave + live preview + SEO. |
+| **Blog Posts** | News and articles. Drafts + autosave + live preview + SEO. |
+| **Events** | Upcoming events and workshops. Drafts + autosave + live preview + SEO. |
+| **Student Stories** | Testimonials. Featured stories shown on homepage. |
+| **Redirects** | 301/302 redirects managed by editors (no code needed). |
+| **Search** | Full-text search index (auto-populated). |
+| **Forms** | Contact forms built by editors (no code needed). |
+| **Site Settings** *(global)* | Branding, contact, hero text, social links. |
+
+---
+
+## Roles
+
+| Role | Can do |
+|---|---|
+| **Admin** | Everything, including managing users |
+| **Editor** | Create and update content (no delete, no user management) |
+| **Public** | Read published content only |
+
+---
+
+## Draft & Publish Workflow
+
+1. Create or edit any content item — it's a **Draft** by default
+2. Content autosaves every 2 seconds
+3. Click **Preview** to see how it looks on ourmoon.org.uk before publishing
+4. When ready, set **Status → Published** and save
+5. The live website updates automatically via webhook
+
+---
+
+## Deployment
+
+Push to `main` → GitHub Actions deploys to Cloudflare Workers automatically.
+
+The workflow: install → build → run migrations → deploy.
+
+Required GitHub Secrets:
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`
+- `AZURE_STORAGE_CONNECTION_STRING`, `SMTP_PASS`
+- `PREVIEW_SECRET`, `NUXT_REVALIDATE_URL`, `NUXT_REVALIDATE_SECRET`
+
+Manual deploy:
+```bash
+pnpm run deploy
+```
+
+After schema changes:
+```bash
+pnpm payload migrate:create --name describe_your_change
+# commit src/migrations/ and push
+```
+
+---
 
 ## Useful Commands
 
 ```bash
-pnpm dev                              # Start dev server
-pnpm run build                        # Next.js production build
-pnpm run deploy                       # Build + deploy to Cloudflare Workers
-pnpm run cf:preview                   # Preview in Workers runtime locally
-pnpm payload migrate:create --name x  # Generate a new migration
-pnpm generate:types                   # Regenerate payload-types.ts
+pnpm dev                              # Local dev
+pnpm run build                        # Production build
+pnpm run deploy                       # Deploy to Cloudflare Workers
+pnpm generate:types                   # Regenerate TypeScript types
+pnpm payload migrate:create --name x  # New DB migration
+pnpm payload seed                     # Seed sample content
 ```
+
+---
+
+## Health Check
+
+`GET https://editor.ourmoon.org.uk/api/health` → `{ "status": "ok" }`
+
+Set up [UptimeRobot](https://uptimerobot.com) to monitor this every 5 minutes.
+
+---
+
+## Questions?
+
+See `CLAUDE.md` for full technical documentation, or ask in the team Slack.
