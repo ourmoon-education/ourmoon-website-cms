@@ -19,3 +19,5 @@ next-env.d.ts
 src/payload-types.ts
 playwright-report/
 test-results/
+.open-next/
+.dev.vars

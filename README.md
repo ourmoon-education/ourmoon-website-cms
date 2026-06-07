@@ -1,67 +1,96 @@
-# Payload Blank Template
+# OurMoon CMS
 
-This template comes configured with the bare minimum to get started on anything you need.
+Payload CMS v3 for [Our Moon Education](https://ourmoon.org.uk).
 
-## Quick start
+- **Admin panel**: https://editor.ourmoon.org.uk/admin
+- **Stack**: Next.js · Payload CMS v3 · Supabase Postgres · Azure Blob Storage · Cloudflare Workers
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+## Local Development
 
-## Quick Start - local setup
+### Prerequisites
 
-To spin up this template locally, follow these steps:
+- Node.js 22+
+- pnpm 10+
+- A Supabase Postgres database (or local Postgres)
+- Azure Blob Storage account (or skip — uploads will fail locally without it)
 
-### Clone
+### Setup
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+```bash
+# 1. Install dependencies
+pnpm install
 
-### Development
+# 2. Copy env file and fill in values
+cp .env.example .env
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+# 3. Run database migrations
+pnpm payload migrate
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+# 4. Start dev server
+pnpm dev
+```
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+Open http://localhost:3000 to see the app. The admin panel is at http://localhost:3000/admin.
 
-#### Docker (Optional)
+### Environment Variables
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URI` | Supabase Cloud Postgres connection string |
+| `DATABASE_URL` | Same as above (alias) |
+| `PAYLOAD_SECRET` | Secret key for Payload CMS |
+| `NEXT_PUBLIC_SERVER_URL` | Public URL of the CMS (e.g. `https://editor.ourmoon.org.uk`) |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage connection string for media uploads |
 
-To do so, follow these steps:
+## Deployment
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+### Cloudflare Workers (production)
 
-## How it works
+Deployments are automated via GitHub Actions on push to `main`.
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+The workflow:
+1. Installs dependencies
+2. Builds the Next.js app
+3. Runs database migrations against Supabase
+4. Builds the Cloudflare Worker with `opennextjs-cloudflare build`
+5. Deploys with `wrangler deploy`
 
-### Collections
+Required GitHub Actions secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`, `AZURE_STORAGE_CONNECTION_STRING`
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+To deploy manually:
+```bash
+pnpm run deploy
+```
 
-- #### Users (Authentication)
+### Schema Changes
 
-  Users are auth-enabled collections that have access to the admin panel.
+After any schema change, generate and commit a migration before pushing:
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+```bash
+pnpm payload migrate:create --name describe_your_change
+# commit the file in src/migrations/
+git push
+```
 
-- #### Media
+## Collections
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+| Collection | Description |
+|------------|-------------|
+| Users | CMS admin users (auth-enabled) |
+| Media | File uploads → Azure Blob Storage |
+| Programmes | Educational programmes offered |
+| Blog Posts | News and blog content |
+| Events | Upcoming events |
+| Student Stories | Testimonials and student spotlights |
+| Site Settings *(global)* | Sitewide config: name, tagline, contact, social links |
 
-### Docker
+## Useful Commands
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+```bash
+pnpm dev                              # Start dev server
+pnpm run build                        # Next.js production build
+pnpm run deploy                       # Build + deploy to Cloudflare Workers
+pnpm run cf:preview                   # Preview in Workers runtime locally
+pnpm payload migrate:create --name x  # Generate a new migration
+pnpm generate:types                   # Regenerate payload-types.ts
+```

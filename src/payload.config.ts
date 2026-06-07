@@ -1,5 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { azureStorage } from '@payloadcms/storage-azure'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -33,8 +34,20 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || process.env.DATABASE_URL || '',
+      // maxUses: 1 required for Cloudflare Workers (no persistent connections)
+      maxUses: 1,
     },
   }),
   sharp,
-  plugins: [],
+  plugins: [
+    azureStorage({
+      collections: {
+        media: true,
+      },
+      allowContainerCreate: false,
+      baseURL: `https://ourmoonwebassets.blob.core.windows.net/assets`,
+      connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || '',
+      containerName: 'assets',
+    }),
+  ],
 })
