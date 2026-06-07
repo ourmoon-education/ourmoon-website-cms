@@ -22,11 +22,9 @@ export async function seedTestUser(): Promise<void> {
     },
   })
 
-  // Create fresh test user
-  await payload.create({
-    collection: 'users',
-    data: testUser,
-  })
+  // Create fresh test user (cast required due to stale payload-types.ts — run generate:types to update)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await payload.create({ collection: 'users', data: testUser as any })
 }
 
 /**

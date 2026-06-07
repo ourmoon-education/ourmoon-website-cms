@@ -73,6 +73,10 @@ export interface Config {
     'blog-posts': BlogPost;
     events: Event;
     'student-stories': StudentStory;
+    redirects: Redirect;
+    search: Search;
+    forms: Form;
+    'form-submissions': FormSubmission;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +90,10 @@ export interface Config {
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'student-stories': StudentStoriesSelect<false> | StudentStoriesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+    search: SearchSelect<false> | SearchSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -130,11 +138,17 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * CMS user accounts. Admins have full access; editors can create and update content.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
+  /**
+   * Admins have full access. Editors can create and update content but cannot delete or manage users.
+   */
+  role: 'admin' | 'editor';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -155,11 +169,16 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Images and documents. Supported formats: JPEG, PNG, WebP, GIF, SVG, PDF. Max 10 MB.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Descriptive text for screen readers and SEO. Auto-generated from filename if left blank.
+   */
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -172,24 +191,76 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    hero?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
+ * Educational programmes offered by OurMoon Education. Each programme should have a title, description, and key details.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "programmes".
  */
 export interface Programme {
   id: number;
+  /**
+   * The full name of the programme.
+   */
   title: string;
   /**
-   * Auto-generated from title on create. Edit manually if needed.
+   * URL-friendly identifier. Auto-generated from title on create; edit manually if needed.
    */
   slug?: string | null;
+  /**
+   * Drafts are only visible to logged-in editors. Published items are visible to the public.
+   */
   status: 'draft' | 'published';
+  /**
+   * Auto-set when status changes to Published. Override manually if needed.
+   */
   publishedDate?: string | null;
   /**
-   * Used in cards and previews.
+   * Schedule this content to be published automatically at this date and time. Requires a scheduled job — see CLAUDE.md.
+   */
+  scheduledPublishDate?: string | null;
+  /**
+   * A short summary shown on listing pages and cards. Maximum 300 characters.
    */
   shortDescription?: string | null;
+  /**
+   * Full programme description. Use headings to break up sections.
+   */
   description?: {
     root: {
       type: string;
@@ -205,24 +276,65 @@ export interface Programme {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Main image shown on the programme page and listing cards.
+   */
   featuredImage?: (number | null) | Media;
+  /**
+   * Target age range for this programme.
+   */
   ageRange?: string | null;
+  /**
+   * How long the programme runs.
+   */
   duration?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
+ * News, articles, and updates from OurMoon Education.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "blog-posts".
  */
 export interface BlogPost {
   id: number;
+  /**
+   * The blog post headline.
+   */
   title: string;
+  /**
+   * URL-friendly identifier. Auto-generated from title on create.
+   */
   slug?: string | null;
+  /**
+   * Drafts are only visible to editors. Published posts are live on the website.
+   */
   status: 'draft' | 'published';
+  /**
+   * Auto-set when published. Override to backdate or schedule.
+   */
   publishedDate?: string | null;
+  /**
+   * Schedule this post to go live at a future date and time. Requires a scheduled job — see CLAUDE.md.
+   */
+  scheduledPublishDate?: string | null;
+  /**
+   * Author name as it should appear on the post.
+   */
   author?: string | null;
+  /**
+   * Short summary shown on listing pages and in search results. Max 300 characters.
+   */
   excerpt?: string | null;
+  /**
+   * The full post content.
+   */
   content?: {
     root: {
       type: string;
@@ -238,27 +350,66 @@ export interface BlogPost {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Main image shown at the top of the post and in listing cards.
+   */
   featuredImage?: (number | null) | Media;
+  /**
+   * Tags help readers find related content. Use lowercase, e.g. "space", "stem", "workshops".
+   */
   tags?:
     | {
         tag: string;
         id?: string | null;
       }[]
     | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
+ * Upcoming and past OurMoon Education events, workshops, and open days.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
   id: number;
+  /**
+   * The event name.
+   */
   title: string;
+  /**
+   * URL-friendly identifier. Auto-generated from title on create.
+   */
   slug?: string | null;
+  /**
+   * Drafts are only visible to editors.
+   */
   status: 'draft' | 'published';
+  /**
+   * Auto-set when published.
+   */
+  publishedDate?: string | null;
+  /**
+   * Schedule this event listing to go live at a future date and time.
+   */
+  scheduledPublishDate?: string | null;
+  /**
+   * When the event starts.
+   */
   startDate: string;
+  /**
+   * When the event ends. Leave blank for single-day events.
+   */
   endDate?: string | null;
+  /**
+   * Full event details, agenda, and what to expect.
+   */
   description?: {
     root: {
       type: string;
@@ -274,29 +425,57 @@ export interface Event {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Physical venue address. Leave blank for online events.
+   */
   location?: string | null;
+  /**
+   * Tick if this event takes place online.
+   */
   isOnline?: boolean | null;
+  /**
+   * Full URL to the registration or booking page.
+   */
   registrationLink?: string | null;
+  /**
+   * Banner image for the event.
+   */
   featuredImage?: (number | null) | Media;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
+ * Testimonials and success stories from OurMoon Education students.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "student-stories".
  */
 export interface StudentStory {
   id: number;
+  /**
+   * The student's name. Use first name only or initials if the family prefers privacy.
+   */
   studentName: string;
+  /**
+   * Drafts are only visible to editors.
+   */
   status: 'draft' | 'published';
   /**
-   * Show on homepage
+   * Featured stories appear on the homepage testimonials section.
    */
   featured?: boolean | null;
   /**
-   * Used for homepage display.
+   * A short, impactful quote for display on the homepage. Max 200 characters.
    */
   shortQuote?: string | null;
+  /**
+   * The student's full story. Include their background, what they learned, and how it impacted them.
+   */
   story?: {
     root: {
       type: string;
@@ -312,8 +491,241 @@ export interface StudentStory {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Photo of the student. Ensure you have permission to use their image.
+   */
   photo?: (number | null) | Media;
+  /**
+   * Which programme did this student attend?
+   */
   programme?: (number | null) | Programme;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Manage URL redirects. Use when you rename or move pages.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: number;
+  from: string;
+  to?: {
+    type?: ('reference' | 'custom') | null;
+    reference?:
+      | ({
+          relationTo: 'programmes';
+          value: number | Programme;
+        } | null)
+      | ({
+          relationTo: 'blog-posts';
+          value: number | BlogPost;
+        } | null);
+    url?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Search index — updated automatically when content is saved.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search".
+ */
+export interface Search {
+  id: number;
+  title?: string | null;
+  priority?: number | null;
+  doc:
+    | {
+        relationTo: 'programmes';
+        value: number | Programme;
+      }
+    | {
+        relationTo: 'blog-posts';
+        value: number | BlogPost;
+      }
+    | {
+        relationTo: 'events';
+        value: number | Event;
+      };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Build contact and registration forms without writing code.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: number;
+  title: string;
+  fields?:
+    | (
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            required?: boolean | null;
+            defaultValue?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'checkbox';
+          }
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            required?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'email';
+          }
+        | {
+            message?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'message';
+          }
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            defaultValue?: number | null;
+            required?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'number';
+          }
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            defaultValue?: string | null;
+            placeholder?: string | null;
+            options?:
+              | {
+                  label: string;
+                  value: string;
+                  id?: string | null;
+                }[]
+              | null;
+            required?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'select';
+          }
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            defaultValue?: string | null;
+            required?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'text';
+          }
+        | {
+            name: string;
+            label?: string | null;
+            width?: number | null;
+            defaultValue?: string | null;
+            required?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textarea';
+          }
+      )[]
+    | null;
+  submitButtonLabel?: string | null;
+  /**
+   * Choose whether to display an on-page message or redirect to a different page after they submit the form.
+   */
+  confirmationType?: ('message' | 'redirect') | null;
+  confirmationMessage?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  redirect?: {
+    url: string;
+  };
+  /**
+   * Send custom emails when the form submits. Use comma separated lists to send the same email to multiple recipients. To reference a value from this form, wrap that field's name with double curly brackets, i.e. {{firstName}}. You can use a wildcard {{*}} to output all data and {{*:table}} to format it as an HTML table in the email.
+   */
+  emails?:
+    | {
+        emailTo?: string | null;
+        cc?: string | null;
+        bcc?: string | null;
+        replyTo?: string | null;
+        emailFrom?: string | null;
+        subject: string;
+        /**
+         * Enter the message that should be sent in this email.
+         */
+        message?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: number;
+  form: number | Form;
+  submissionData?:
+    | {
+        field: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -364,6 +776,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'student-stories';
         value: number | StudentStory;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: number | Redirect;
+      } | null)
+    | ({
+        relationTo: 'search';
+        value: number | Search;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: number | Form;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: number | FormSubmission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -412,6 +840,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -446,6 +875,50 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        hero?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        og?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -456,13 +929,21 @@ export interface ProgrammesSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedDate?: T;
+  scheduledPublishDate?: T;
   shortDescription?: T;
   description?: T;
   featuredImage?: T;
   ageRange?: T;
   duration?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -473,6 +954,7 @@ export interface BlogPostsSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedDate?: T;
+  scheduledPublishDate?: T;
   author?: T;
   excerpt?: T;
   content?: T;
@@ -483,8 +965,15 @@ export interface BlogPostsSelect<T extends boolean = true> {
         tag?: T;
         id?: T;
       };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -494,6 +983,8 @@ export interface EventsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   status?: T;
+  publishedDate?: T;
+  scheduledPublishDate?: T;
   startDate?: T;
   endDate?: T;
   description?: T;
@@ -501,8 +992,15 @@ export interface EventsSelect<T extends boolean = true> {
   isOnline?: T;
   registrationLink?: T;
   featuredImage?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -516,6 +1014,163 @@ export interface StudentStoriesSelect<T extends boolean = true> {
   story?: T;
   photo?: T;
   programme?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  from?: T;
+  to?:
+    | T
+    | {
+        type?: T;
+        reference?: T;
+        url?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search_select".
+ */
+export interface SearchSelect<T extends boolean = true> {
+  title?: T;
+  priority?: T;
+  doc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  fields?:
+    | T
+    | {
+        checkbox?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              required?: T;
+              defaultValue?: T;
+              id?: T;
+              blockName?: T;
+            };
+        email?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        message?:
+          | T
+          | {
+              message?: T;
+              id?: T;
+              blockName?: T;
+            };
+        number?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        select?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              placeholder?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        text?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textarea?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  submitButtonLabel?: T;
+  confirmationType?: T;
+  confirmationMessage?: T;
+  redirect?:
+    | T
+    | {
+        url?: T;
+      };
+  emails?:
+    | T
+    | {
+        emailTo?: T;
+        cc?: T;
+        bcc?: T;
+        replyTo?: T;
+        emailFrom?: T;
+        subject?: T;
+        message?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  form?: T;
+  submissionData?:
+    | T
+    | {
+        field?: T;
+        value?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -560,19 +1215,48 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Global site configuration: branding, contact details, social links, and homepage hero content.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
   id: number;
+  /**
+   * The organisation name shown in the browser tab and header.
+   */
   siteName?: string | null;
+  /**
+   * Short strapline shown under the site name.
+   */
   tagline?: string | null;
-  heroHeadline?: string | null;
-  heroSubheadline?: string | null;
-  contactEmail?: string | null;
-  phone?: string | null;
-  address?: string | null;
+  /**
+   * Main site logo. Recommended: SVG or PNG with transparent background.
+   */
   logo?: (number | null) | Media;
+  /**
+   * Main headline on the homepage hero section.
+   */
+  heroHeadline?: string | null;
+  /**
+   * Supporting text below the headline.
+   */
+  heroSubheadline?: string | null;
+  /**
+   * Public contact email shown on the website.
+   */
+  contactEmail?: string | null;
+  /**
+   * Public phone number.
+   */
+  phone?: string | null;
+  /**
+   * Postal address shown on the contact page.
+   */
+  address?: string | null;
+  /**
+   * Social media profiles. These appear in the site footer.
+   */
   socialLinks?:
     | {
         platform: string;
@@ -590,12 +1274,12 @@ export interface SiteSetting {
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   tagline?: T;
+  logo?: T;
   heroHeadline?: T;
   heroSubheadline?: T;
   contactEmail?: T;
   phone?: T;
   address?: T;
-  logo?: T;
   socialLinks?:
     | T
     | {
