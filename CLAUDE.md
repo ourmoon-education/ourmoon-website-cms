@@ -8,7 +8,7 @@ Start with `.claude/skills/payload/SKILL.md` for a quick reference, then see `.c
 # OurMoon CMS — Project Reference
 
 **Payload CMS v3** for Our Moon Education (ourmoon.org.uk).
-Admin panel: https://editor.ourmoon.org.uk/admin
+Admin panel: https://content.ourmoon.org.uk/admin
 
 ## Stack
 
@@ -33,13 +33,13 @@ Set as Cloudflare Worker secrets and GitHub Actions secrets:
 | `DATABASE_URI` | Supabase Cloud Postgres connection string |
 | `DATABASE_URL` | Same as above (alias) |
 | `PAYLOAD_SECRET` | Payload CMS secret key |
-| `NEXT_PUBLIC_SERVER_URL` | Public URL of the CMS (`https://editor.ourmoon.org.uk`) |
+| `NEXT_PUBLIC_SERVER_URL` | Public URL of the CMS (`https://content.ourmoon.org.uk`) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage credentials |
 | `SMTP_PASS` | Mailgun SMTP password |
 | `PREVIEW_SECRET` | Shared secret for preview URLs |
 | `NEXT_PUBLIC_FRONTEND_URL` | Frontend URL (`https://ourmoon.org.uk`) |
-| `NUXT_REVALIDATE_URL` | Nuxt ISR revalidation endpoint |
-| `NUXT_REVALIDATE_SECRET` | Shared secret for revalidation webhook |
+| `FRONTEND_REVALIDATE_URL` | Nuxt ISR revalidation endpoint |
+| `FRONTEND_REVALIDATE_SECRET` | Shared secret for revalidation webhook |
 | `SEED_ADMIN_EMAIL` | Admin email for seed script |
 | `SEED_ADMIN_PASSWORD` | Admin password for seed script |
 
@@ -97,7 +97,7 @@ https://ourmoon.org.uk/preview?slug={slug}&collection={collection}&secret={PREVI
    - Validates `secret === PREVIEW_SECRET`
    - Fetches the draft content from Payload REST API:
      ```
-     GET https://editor.ourmoon.org.uk/api/{collection}/{id}?draft=true
+     GET https://content.ourmoon.org.uk/api/{collection}/{id}?draft=true
      Authorization: Bearer <token>
      ```
    - Renders the content
@@ -111,18 +111,18 @@ https://ourmoon.org.uk/preview?slug={slug}&collection={collection}&secret={PREVI
 
 ## Webhooks / ISR Revalidation
 
-When content is published, Payload POSTs to `NUXT_REVALIDATE_URL`:
+When content is published, Payload POSTs to `FRONTEND_REVALIDATE_URL`:
 ```json
 { "collection": "blog-posts", "slug": "my-post" }
 ```
-Header: `x-revalidate-secret: <NUXT_REVALIDATE_SECRET>`
+Header: `x-revalidate-secret: <FRONTEND_REVALIDATE_SECRET>`
 
 **The Nuxt frontend needs:**
 ```ts
 // server/api/revalidate.post.ts
 export default defineEventHandler(async (event) => {
   const secret = getHeader(event, 'x-revalidate-secret')
-  if (secret !== process.env.NUXT_REVALIDATE_SECRET) {
+  if (secret !== process.env.FRONTEND_REVALIDATE_SECRET) {
     throw createError({ statusCode: 401 })
   }
   const { collection, slug } = await readBody(event)
@@ -178,7 +178,7 @@ The Nuxt frontend uses the REST API, so GraphQL is rarely needed.
 Payload locks a user after **5 failed login attempts** for **10 minutes** (configured in `src/collections/Users.ts`).
 Configure via `auth: { maxLoginAttempts: 5, lockTime: 600000 }`.
 
-**Recommended:** Add Cloudflare Rate Limiting on `editor.ourmoon.org.uk/api/users/login` — 10 requests per minute per IP.
+**Recommended:** Add Cloudflare Rate Limiting on `content.ourmoon.org.uk/api/users/login` — 10 requests per minute per IP.
 
 ## Backup Strategy
 
@@ -188,7 +188,7 @@ Configure via `auth: { maxLoginAttempts: 5, lockTime: 600000 }`.
 
 ## Uptime Monitoring
 
-Health check endpoint: `GET https://editor.ourmoon.org.uk/api/health`
+Health check endpoint: `GET https://content.ourmoon.org.uk/api/health`
 Returns: `{ "status": "ok", "timestamp": "..." }`
 
 Set up UptimeRobot (free) to ping this every 5 minutes.
@@ -202,7 +202,7 @@ Push to `main` → GitHub Actions auto-deploys:
 3. `pnpm payload migrate` (applies DB migrations)
 4. `opennextjs-cloudflare build && wrangler deploy`
 
-Required secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`, `AZURE_STORAGE_CONNECTION_STRING`, `SMTP_PASS`, `PREVIEW_SECRET`, `NUXT_REVALIDATE_URL`, `NUXT_REVALIDATE_SECRET`
+Required secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`, `AZURE_STORAGE_CONNECTION_STRING`, `SMTP_PASS`, `PREVIEW_SECRET`, `FRONTEND_REVALIDATE_URL`, `FRONTEND_REVALIDATE_SECRET`
 
 Manual deploy: `pnpm run deploy`
 
