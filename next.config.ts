@@ -18,6 +18,28 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    // Use Rust-based turbotrace instead of JS nft for file tracing.
+    // nft loads all 791 packages into the JS heap and OOMs on small VPS.
+    // turbotrace does the same work in Rust using ~90% less memory.
+    turbotrace: {
+      logLevel: 'error',
+      contextDirectory: path.resolve(dirname, '../../'),
+    },
+    // Exclude heavy directories that don't need to be traced
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/@swc/core-linux-x64-gnu',
+        'node_modules/@swc/core-linux-x64-musl',
+        'node_modules/@esbuild/linux-x64',
+        'node_modules/webpack',
+        'node_modules/terser',
+        '**/__tests__/**',
+        '**/*.test.*',
+        '**/*.spec.*',
+      ],
+    },
+  },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
