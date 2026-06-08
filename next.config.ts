@@ -1,17 +1,13 @@
 import { withPayload } from '@payloadcms/next/withPayload'
-import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
 import type { NextConfig } from 'next'
 import path from 'path'
 import { fileURLToPath } from 'url'
-
-initOpenNextCloudflareForDev()
 
 const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
-  // These packages can't run in Cloudflare Workers — keep them server-side only
-  serverExternalPackages: ['sharp', 'drizzle-kit', 'pg-cloudflare'],
+  serverExternalPackages: ['sharp', 'drizzle-kit'],
   output: 'standalone',
   images: {
     remotePatterns: [
