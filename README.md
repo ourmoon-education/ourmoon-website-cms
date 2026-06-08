@@ -2,7 +2,7 @@
 
 Payload CMS v3 for [Our Moon Education](https://ourmoon.org.uk).
 
-- **Admin panel**: https://editor.ourmoon.org.uk/admin
+- **Admin panel**: https://content.ourmoon.org.uk/admin
 - **Stack**: Next.js · Payload CMS v3 · Supabase Postgres · Azure Blob Storage · Cloudflare Workers
 
 ---
@@ -45,7 +45,7 @@ Copy `.env.example` to `.env`. Key variables:
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob for media |
 | `SMTP_PASS` | Mailgun SMTP password |
 | `PREVIEW_SECRET` | Shared secret for content preview |
-| `NUXT_REVALIDATE_URL` / `NUXT_REVALIDATE_SECRET` | Nuxt ISR webhooks |
+| `FRONTEND_REVALIDATE_URL` / `FRONTEND_REVALIDATE_SECRET` | Nuxt ISR webhooks |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Seed script credentials |
 
 ---
@@ -97,7 +97,7 @@ Required GitHub Secrets:
 - `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 - `DATABASE_URI`, `DATABASE_URL`, `PAYLOAD_SECRET`
 - `AZURE_STORAGE_CONNECTION_STRING`, `SMTP_PASS`
-- `PREVIEW_SECRET`, `NUXT_REVALIDATE_URL`, `NUXT_REVALIDATE_SECRET`
+- `PREVIEW_SECRET`, `FRONTEND_REVALIDATE_URL`, `FRONTEND_REVALIDATE_SECRET`
 
 Manual deploy:
 ```bash
@@ -127,7 +127,7 @@ pnpm payload seed                     # Seed sample content
 
 ## Health Check
 
-`GET https://editor.ourmoon.org.uk/api/health` → `{ "status": "ok" }`
+`GET https://content.ourmoon.org.uk/api/health` → `{ "status": "ok" }`
 
 Set up [UptimeRobot](https://uptimerobot.com) to monitor this every 5 minutes.
 
