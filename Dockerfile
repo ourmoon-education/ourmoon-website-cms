@@ -25,6 +25,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Dummy env vars for build stage so next build compiles without live DB connection
+ENV DATABASE_URI="postgresql://postgres:dummy@localhost:5432/dummy"
+ENV PAYLOAD_SECRET="dummy-secret-at-least-32-characters-long-for-build"
+ENV NEXT_PUBLIC_SERVER_URL="http://localhost:3000"
+
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.

@@ -23,6 +23,7 @@ import { BlogPosts } from './collections/BlogPosts'
 import { Events } from './collections/Events'
 import { StudentStories } from './collections/StudentStories'
 import { SiteSettings } from './globals/SiteSettings'
+import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -107,8 +108,9 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || process.env.DATABASE_URL || '',
       // maxUses: 1 required for Cloudflare Workers (no persistent connections)
-      maxUses: 1,
+      maxUses: process.env.DATABASE_MAX_USES ? parseInt(process.env.DATABASE_MAX_USES, 10) : (process.env.CLOUDFLARE_WORKER === 'true' ? 1 : undefined),
     },
+    prodMigrations: migrations,
   }),
 
   // ─── i18n ────────────────────────────────────────────────────────────────
@@ -182,16 +184,20 @@ export default buildConfig({
 
   // ─── Plugins ─────────────────────────────────────────────────────────────
   plugins: [
-    // Azure Blob Storage for media uploads
-    azureStorage({
-      collections: {
-        media: true,
-      },
-      allowContainerCreate: false,
-      baseURL: 'https://ourmoonwebassets.blob.core.windows.net/assets',
-      connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || '',
-      containerName: 'assets',
-    }),
+    // Azure Blob Storage for media uploads (conditional)
+    ...(process.env.AZURE_STORAGE_CONNECTION_STRING
+      ? [
+          azureStorage({
+            collections: {
+              media: true,
+            },
+            allowContainerCreate: false,
+            baseURL: 'https://ourmoonwebassets.blob.core.windows.net/assets',
+            connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+            containerName: 'assets',
+          }),
+        ]
+      : []),
 
     // SEO fields on content collections
     seoPlugin({

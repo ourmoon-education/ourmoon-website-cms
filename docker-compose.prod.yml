@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  payload:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Map a persistent volume for uploaded media files (used when azure storage connection string is omitted)
+      - media-uploads:/app/media
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URI=postgresql://postgres:postgres_secure_password@postgres:5432/ourmoon_cms?sslmode=disable
+      - PAYLOAD_SECRET=generate-a-secure-32-character-random-string-here
+      - NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+      - PORT=3000
+      # - AZURE_STORAGE_CONNECTION_STRING=
+      # - SMTP_PASS=
+      # - PREVIEW_SECRET=
+      # - NEXT_PUBLIC_FRONTEND_URL=
+      # - FRONTEND_REVALIDATE_URL=
+      # - FRONTEND_REVALIDATE_SECRET=
+      # - SEED_ADMIN_EMAIL=
+      # - SEED_ADMIN_PASSWORD=
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_secure_password
+      - POSTGRES_DB=ourmoon_cms
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ourmoon_cms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  media-uploads:
