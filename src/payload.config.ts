@@ -54,6 +54,8 @@ export default buildConfig({
       },
     },
     livePreview: {
+      // Must list collections explicitly for the Live Preview tab to appear
+      collections: ['programmes', 'blog-posts', 'events'],
       breakpoints: [
         { label: 'Mobile', name: 'mobile', width: 375, height: 667 },
         { label: 'Tablet', name: 'tablet', width: 768, height: 1024 },
