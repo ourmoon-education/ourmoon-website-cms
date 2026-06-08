@@ -37,7 +37,7 @@ Set as Cloudflare Worker secrets and GitHub Actions secrets:
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage credentials |
 | `SMTP_PASS` | Mailgun SMTP password |
 | `PREVIEW_SECRET` | Shared secret for preview URLs |
-| `NEXT_PUBLIC_FRONTEND_URL` | Frontend URL (`https://ourmoon.org.uk`) |
+| `NEXT_PUBLIC_FRONTEND_URL` | Frontend URL (`https://devnext.ourmoon.org.uk`) |
 | `FRONTEND_REVALIDATE_URL` | Nuxt ISR revalidation endpoint |
 | `FRONTEND_REVALIDATE_SECRET` | Shared secret for revalidation webhook |
 | `SEED_ADMIN_EMAIL` | Admin email for seed script |
@@ -87,7 +87,7 @@ Programmes, BlogPosts, Events, and StudentStories all have:
 The admin panel shows a live preview of the Nuxt frontend inside an iframe.
 Preview URL format:
 ```
-https://ourmoon.org.uk/preview?slug={slug}&collection={collection}&secret={PREVIEW_SECRET}
+https://devnext.ourmoon.org.uk/preview?slug={slug}&collection={collection}&secret={PREVIEW_SECRET}
 ```
 
 **The Nuxt frontend needs to implement:**

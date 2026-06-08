@@ -59,7 +59,7 @@ export default buildConfig({
         { label: 'Desktop', name: 'desktop', width: 1440, height: 900 },
       ],
       url: ({ data, collectionConfig }) =>
-        `${process.env.NEXT_PUBLIC_FRONTEND_URL ?? 'https://ourmoon.org.uk'}/preview?slug=${data?.slug ?? ''}&collection=${collectionConfig?.slug ?? ''}&secret=${process.env.PREVIEW_SECRET ?? ''}`,
+        `${process.env.NEXT_PUBLIC_FRONTEND_URL ?? 'https://devnext.ourmoon.org.uk'}/preview?slug=${data?.slug ?? ''}&collection=${collectionConfig?.slug ?? ''}&secret=${process.env.PREVIEW_SECRET ?? ''}`,
     },
   },
 
@@ -74,13 +74,11 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   cookiePrefix: 'ourmoon',
   cors: [
-    'https://ourmoon.org.uk',
-    'https://www.ourmoon.org.uk',
+    'https://devnext.ourmoon.org.uk',
     'https://content.ourmoon.org.uk',
   ],
   csrf: [
-    'https://ourmoon.org.uk',
-    'https://www.ourmoon.org.uk',
+    'https://devnext.ourmoon.org.uk',
     'https://content.ourmoon.org.uk',
   ],
 
@@ -199,7 +197,7 @@ export default buildConfig({
       generateDescription: ({ doc }) =>
         (doc?.excerpt as string) || (doc?.shortDescription as string) || '',
       generateURL: ({ doc, collectionSlug }) =>
-        `https://ourmoon.org.uk/${collectionSlug ?? ''}/${doc?.slug ?? ''}`,
+        `https://devnext.ourmoon.org.uk/${collectionSlug ?? ''}/${doc?.slug ?? ''}`,
     }),
 
     // 301/302 redirects managed by editors

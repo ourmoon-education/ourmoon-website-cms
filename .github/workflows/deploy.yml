@@ -33,7 +33,7 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           PREVIEW_SECRET: ${{ secrets.PREVIEW_SECRET }}
           NEXT_PUBLIC_SERVER_URL: https://content.ourmoon.org.uk
-          NEXT_PUBLIC_FRONTEND_URL: https://ourmoon.org.uk
+          NEXT_PUBLIC_FRONTEND_URL: https://devnext.ourmoon.org.uk
 
       - name: Run migrations
         run: pnpm payload migrate
@@ -58,4 +58,4 @@ jobs:
           FRONTEND_REVALIDATE_URL: ${{ secrets.FRONTEND_REVALIDATE_URL }}
           FRONTEND_REVALIDATE_SECRET: ${{ secrets.FRONTEND_REVALIDATE_SECRET }}
           NEXT_PUBLIC_SERVER_URL: https://content.ourmoon.org.uk
-          NEXT_PUBLIC_FRONTEND_URL: https://ourmoon.org.uk
+          NEXT_PUBLIC_FRONTEND_URL: https://devnext.ourmoon.org.uk
