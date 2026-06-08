@@ -89,6 +89,10 @@ export default buildConfig({
   indexSortableFields: true,
   telemetry: false,
 
+  // GraphQL is unused by the frontend — disabling it removes the graphql
+  // package (~0.5 MB) and the playground from the worker bundle.
+  graphQL: { disable: true },
+
   // ─── Localization ────────────────────────────────────────────────────────
   // Localization intentionally disabled — enables complex migrations.
   // See CLAUDE.md for instructions when ready to enable.
