@@ -107,8 +107,7 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || process.env.DATABASE_URL || '',
-      // maxUses: 1 required for Cloudflare Workers (no persistent connections)
-      maxUses: process.env.DATABASE_MAX_USES ? parseInt(process.env.DATABASE_MAX_USES, 10) : (process.env.CLOUDFLARE_WORKER === 'true' ? 1 : undefined),
+      maxUses: process.env.DATABASE_MAX_USES ? parseInt(process.env.DATABASE_MAX_USES, 10) : undefined,
     },
     prodMigrations: migrations,
   }),
