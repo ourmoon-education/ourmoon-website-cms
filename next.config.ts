@@ -30,9 +30,6 @@ const nextConfig: NextConfig = {
 
     return webpackConfig
   },
-  turbopack: {
-    root: path.resolve(dirname),
-  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
