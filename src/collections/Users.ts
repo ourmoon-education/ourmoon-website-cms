@@ -13,6 +13,7 @@ export const Users: CollectionConfig = {
   auth: {
     maxLoginAttempts: 5,
     lockTime: 600000, // 10 minutes
+    useAPIKey: true,
   },
   access: {
     read: adminOrSelf,
