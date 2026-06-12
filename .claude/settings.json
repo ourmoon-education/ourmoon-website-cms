@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ourmoon-payload": {
+      "command": "pnpm",
+      "args": ["exec", "tsx", "mcp/server.ts"],
+      "env": {
+        "PAYLOAD_API_URL": "https://content.ourmoon.org.uk"
+      }
+    }
+  }
+}
