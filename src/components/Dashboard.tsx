@@ -41,7 +41,7 @@ const StatCard: React.FC<{ label: string; count: number; href: string; createHre
       </a>
       <a
         href={createHref}
-        style={{ fontSize: '0.8rem', color: 'var(--theme-success-500)', textDecoration: 'underline' }}
+        style={{ fontSize: '0.8rem', color: '#128f8b', textDecoration: 'underline' }}
       >
         + Create new
       </a>
@@ -76,9 +76,22 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '900px' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
-          🌙 Welcome to OurMoon Education CMS
+      <div
+        style={{
+          marginBottom: '2rem',
+          borderLeft: '4px solid #128f8b',
+          paddingLeft: '1rem',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            margin: '0 0 0.5rem',
+            fontFamily: "'Raleway', sans-serif",
+          }}
+        >
+          Welcome to OurMoon Education CMS
         </h1>
         <p style={{ color: 'var(--theme-elevation-500)', margin: 0 }}>
           Manage programmes, blog posts, events, and student stories from here.
@@ -135,25 +148,25 @@ export const Dashboard: React.FC = () => {
             rel="noreferrer"
             style={{ fontSize: '0.875rem', color: 'var(--theme-text)' }}
           >
-            🌐 View live website
+            View live website
           </a>
           <a
             href="/admin/globals/site-settings"
             style={{ fontSize: '0.875rem', color: 'var(--theme-text)' }}
           >
-            ⚙️ Site settings
+            Site settings
           </a>
           <a
             href="/admin/collections/media"
             style={{ fontSize: '0.875rem', color: 'var(--theme-text)' }}
           >
-            🖼️ Media library
+            Media library
           </a>
           <a
             href="/admin/collections/redirects"
             style={{ fontSize: '0.875rem', color: 'var(--theme-text)' }}
           >
-            🔀 Redirects
+            Redirects
           </a>
         </div>
       </div>

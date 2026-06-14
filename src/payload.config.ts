@@ -43,6 +43,7 @@ export default buildConfig({
       icons: [{ url: '/favicon.ico' }],
     },
     components: {
+      beforeLogin: ['/src/components/GoogleLoginButton#GoogleLoginButton'],
       graphics: {
         Logo: '/src/components/Logo#Logo',
         Icon: '/src/components/Icon#Icon',
