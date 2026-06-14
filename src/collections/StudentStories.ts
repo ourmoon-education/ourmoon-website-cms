@@ -2,15 +2,20 @@ import type { CollectionConfig } from 'payload'
 import { editorAccess } from '../access'
 import { richTextEditor } from '../fields/richText'
 
+const generateSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
 export const StudentStories: CollectionConfig = {
   slug: 'student-stories',
   admin: {
     useAsTitle: 'studentName',
     group: 'Content',
     description: 'Testimonials and success stories from OurMoon Education students.',
-    defaultColumns: ['studentName', 'programme', 'featured', 'status', 'updatedAt'],
+    defaultColumns: ['studentName', 'slug', 'programme', 'featured', 'status', 'updatedAt'],
     pagination: { defaultLimit: 25 },
-
   },
   access: editorAccess,
   versions: {
@@ -21,11 +26,19 @@ export const StudentStories: CollectionConfig = {
     },
   },
   hooks: {
+    beforeValidate: [
+      ({ data, operation }) => {
+        if (operation === 'create' && data?.studentName && !data.slug) {
+          data.slug = generateSlug(data.studentName)
+        }
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc }) => {
         if (doc.status === 'published') {
-          const revalidateUrl = process.env.NUXT_REVALIDATE_URL
-          const revalidateSecret = process.env.NUXT_REVALIDATE_SECRET
+          const revalidateUrl = process.env.FRONTEND_REVALIDATE_URL
+          const revalidateSecret = process.env.FRONTEND_REVALIDATE_SECRET
           if (revalidateUrl && revalidateSecret) {
             fetch(revalidateUrl, {
               method: 'POST',
@@ -33,7 +46,7 @@ export const StudentStories: CollectionConfig = {
                 'Content-Type': 'application/json',
                 'x-revalidate-secret': revalidateSecret,
               },
-              body: JSON.stringify({ collection: 'student-stories', id: doc.id }),
+              body: JSON.stringify({ collection: 'student-stories', slug: doc.slug }),
             }).catch(() => {})
           }
         }
@@ -49,6 +62,22 @@ export const StudentStories: CollectionConfig = {
       admin: {
         description: "The student's name. Use first name only or initials if the family prefers privacy.",
         placeholder: 'e.g. Amara T.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        description: 'URL-friendly identifier. Auto-generated from student name on create.',
+        placeholder: 'e.g. amara-t',
+        position: 'sidebar',
+      },
+      validate: (val: string | null | undefined) => {
+        if (!val) return true
+        if (!/^[a-z0-9-]+$/.test(val)) return 'Slug can only contain lowercase letters, numbers, and hyphens.'
+        return true
       },
     },
     {

@@ -50,8 +50,8 @@ export const Programmes: CollectionConfig = {
     afterChange: [
       async ({ doc, req, operation }) => {
         if (doc.status === 'published') {
-          const revalidateUrl = process.env.NUXT_REVALIDATE_URL
-          const revalidateSecret = process.env.NUXT_REVALIDATE_SECRET
+          const revalidateUrl = process.env.FRONTEND_REVALIDATE_URL
+          const revalidateSecret = process.env.FRONTEND_REVALIDATE_SECRET
           if (revalidateUrl && revalidateSecret) {
             fetch(revalidateUrl, {
               method: 'POST',

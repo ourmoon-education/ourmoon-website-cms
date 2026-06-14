@@ -22,6 +22,8 @@ import { Programmes } from './collections/Programmes'
 import { BlogPosts } from './collections/BlogPosts'
 import { Events } from './collections/Events'
 import { StudentStories } from './collections/StudentStories'
+import { TeamMembers } from './collections/TeamMembers'
+import { ImpactStats } from './collections/ImpactStats'
 import { SiteSettings } from './globals/SiteSettings'
 import { migrations } from './migrations'
 
@@ -55,19 +57,26 @@ export default buildConfig({
     },
     livePreview: {
       // Must list collections explicitly for the Live Preview tab to appear
-      collections: ['programmes', 'blog-posts', 'events'],
+      collections: ['programmes', 'blog-posts', 'events', 'student-stories'],
+      globals: ['site-settings'],
       breakpoints: [
         { label: 'Mobile', name: 'mobile', width: 375, height: 667 },
         { label: 'Tablet', name: 'tablet', width: 768, height: 1024 },
         { label: 'Desktop', name: 'desktop', width: 1440, height: 900 },
       ],
-      url: ({ data, collectionConfig }) =>
-        `${process.env.NEXT_PUBLIC_FRONTEND_URL ?? 'https://devnext.ourmoon.org.uk'}/preview?slug=${data?.slug ?? ''}&collection=${collectionConfig?.slug ?? ''}&secret=${process.env.PREVIEW_SECRET ?? ''}`,
+      url: ({ data, collectionConfig, globalConfig }) => {
+        const base = process.env.NEXT_PUBLIC_FRONTEND_URL ?? 'https://devnext.ourmoon.org.uk'
+        const secret = process.env.PREVIEW_SECRET ?? ''
+        if (globalConfig?.slug === 'site-settings') {
+          return `${base}/preview?collection=site-settings&secret=${secret}`
+        }
+        return `${base}/preview?slug=${data?.slug ?? ''}&collection=${collectionConfig?.slug ?? ''}&secret=${secret}`
+      },
     },
   },
 
   // ─── Collections & Globals ───────────────────────────────────────────────
-  collections: [Users, Media, Programmes, BlogPosts, Events, StudentStories],
+  collections: [Users, Media, Programmes, BlogPosts, Events, StudentStories, TeamMembers, ImpactStats],
   globals: [SiteSettings],
 
   // ─── Editor ──────────────────────────────────────────────────────────────
