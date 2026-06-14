@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
+
+// ─── Typography ────────────────────────────────────────────────────────────
+
+body,
+input,
+textarea,
+select,
+button {
+  font-family: 'Trebuchet MS', Trebuchet, Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+}
+
+// ─── Brand accent colours (override Payload's green success palette) ────────
+
+[data-theme='light'],
+[data-theme='dark'] {
+  --theme-success-50: #e6f4f4;
+  --theme-success-100: #b3dcdb;
+  --theme-success-500: #128f8b;
+  --theme-success-600: #0d7270;
+  --theme-success-650: #0b6260;
+  --theme-success-750: #085250;
+}
