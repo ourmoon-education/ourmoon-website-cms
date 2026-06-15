@@ -125,7 +125,7 @@ const seed = async () => {
   }
 
   // ─── Team Members ─────────────────────────────────────────────────────────
-  const teamMembers = await payload.find({ collection: 'team-members', limit: 1 })
+  const teamMembers = await payload.find({ collection: 'team-members' as any, limit: 1 })
   if (teamMembers.totalDocs === 0) {
     const team = [
       // Zambia team
@@ -204,13 +204,13 @@ const seed = async () => {
       },
     ]
     for (const member of team) {
-      await payload.create({ collection: 'team-members', data: member })
+      await payload.create({ collection: 'team-members' as any, data: member as any })
     }
     payload.logger.info('✅ Team members created')
   }
 
   // ─── Impact Stats ─────────────────────────────────────────────────────────
-  const impactStats = await payload.find({ collection: 'impact-stats', limit: 1 })
+  const impactStats = await payload.find({ collection: 'impact-stats' as any, limit: 1 })
   if (impactStats.totalDocs === 0) {
     const stats = [
       { value: '200+', label: 'Young leaders trained', order: 1, status: 'published' as const },
@@ -219,7 +219,7 @@ const seed = async () => {
       { value: '10', label: 'Years on the ground in Zambia', order: 4, status: 'published' as const },
     ]
     for (const stat of stats) {
-      await payload.create({ collection: 'impact-stats', data: stat })
+      await payload.create({ collection: 'impact-stats' as any, data: stat as any })
     }
     payload.logger.info('✅ Impact stats created')
   }
