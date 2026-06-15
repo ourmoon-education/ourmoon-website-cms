@@ -1,4 +1,5 @@
 import React from 'react'
+import { MoonFaceIcon } from './Logo'
 
 export const Icon: React.FC = () => (
   <div
@@ -6,13 +7,12 @@ export const Icon: React.FC = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      width: '32px',
-      height: '32px',
-      fontSize: '1.25rem',
+      width: '36px',
+      height: '36px',
     }}
     title="OurMoon Education"
   >
-    🌙
+    <MoonFaceIcon width={24} height={36} />
   </div>
 )
 

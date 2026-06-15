@@ -42,9 +42,10 @@ export default buildConfig({
     meta: {
       titleSuffix: '— OurMoon Education',
       description: 'OurMoon Education Content Management System',
-      icons: [{ url: '/favicon.ico' }],
+      icons: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     },
     components: {
+      beforeLogin: ['/src/components/GoogleLoginButton#GoogleLoginButton'],
       graphics: {
         Logo: '/src/components/Logo#Logo',
         Icon: '/src/components/Icon#Icon',
