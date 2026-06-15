@@ -225,7 +225,8 @@ const seed = async () => {
   }
 
   // ─── Site Settings ────────────────────────────────────────────────────────
-  await payload.updateGlobal({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (payload.updateGlobal as any)({
     slug: 'site-settings',
     data: {
       siteName: 'OurMoon Education',
