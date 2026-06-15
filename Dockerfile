@@ -47,11 +47,20 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+
+# Enable pnpm so CLI commands (seed, migrate) work from the Coolify terminal
+RUN corepack enable pnpm
+
+# Copy full node_modules and source into /app/cli so Payload CLI commands work.
+# These are kept separate from the standalone output to avoid conflicts.
+COPY --from=deps /app/node_modules /app/cli/node_modules
+COPY --from=builder /app/src /app/cli/src
+COPY --from=builder /app/package.json /app/cli/package.json
+COPY --from=builder /app/pnpm-lock.yaml /app/cli/pnpm-lock.yaml
+COPY --from=builder /app/tsconfig.json /app/cli/tsconfig.json
 
 # Remove this line if you do not have this folder
 COPY --from=builder /app/public ./public
@@ -65,12 +74,14 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Run DB migrations automatically on every deploy, then start the server
+COPY --from=builder /app/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT 3000
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD ["/app/docker-entrypoint.sh"]
