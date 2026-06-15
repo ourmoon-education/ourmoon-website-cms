@@ -326,4 +326,4 @@ const seed = async () => {
   process.exit(0)
 }
 
-void seed()
+export const script = seed
