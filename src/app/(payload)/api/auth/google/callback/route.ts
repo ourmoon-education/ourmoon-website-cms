@@ -1,35 +1,10 @@
 import { getPayload } from 'payload'
 import { NextRequest, NextResponse } from 'next/server'
 import config from '@payload-config'
+import { jwtSign, getFieldsToSign } from 'payload'
+import { generatePayloadCookie } from 'payload/shared'
 
 export const runtime = 'nodejs'
-
-import jwt from 'jsonwebtoken'
-
-async function mintPayloadJWT(
-  payloadSecret: string,
-  cookiePrefix: string,
-  userData: { id: string | number; email: string; role: string },
-): Promise<{ token: string; cookieName: string }> {
-  const now = Math.floor(Date.now() / 1000)
-  
-  const token = jwt.sign(
-    {
-      id: userData.id,
-      email: userData.email,
-      collection: 'users',
-      role: userData.role,
-      iat: now,
-      exp: now + 7200, // 2 hours
-    },
-    payloadSecret
-  )
-
-  return {
-    token,
-    cookieName: `${cookiePrefix ?? 'payload'}-token`,
-  }
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -37,13 +12,12 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get('state')
   const error = searchParams.get('error')
 
-  const adminUrl = `${process.env.NEXT_PUBLIC_SERVER_URL ?? ''}/admin`
+  const adminUrl = `${process.env.NEXT_PUBLIC_SERVER_URL ?? request.nextUrl.origin}/admin`
 
   if (error) {
     return NextResponse.redirect(`${adminUrl}?error=google_denied`)
   }
 
-  // Verify CSRF state
   const storedState = request.cookies.get('google_oauth_state')?.value
   if (!state || !storedState || state !== storedState) {
     return NextResponse.redirect(`${adminUrl}?error=invalid_state`)
@@ -61,10 +35,9 @@ export async function GET(request: NextRequest) {
 
   const redirectUri =
     process.env.GOOGLE_REDIRECT_URI ??
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/google/callback`
+    `${process.env.NEXT_PUBLIC_SERVER_URL ?? request.nextUrl.origin}/api/auth/google/callback`
 
   try {
-    // Exchange code for tokens
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -84,7 +57,6 @@ export async function GET(request: NextRequest) {
 
     const { access_token } = (await tokenRes.json()) as { access_token: string }
 
-    // Get user info from Google
     const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` },
     })
@@ -105,8 +77,6 @@ export async function GET(request: NextRequest) {
 
     const payload = await getPayload({ config })
 
-    // ── Invite-only: only allow users that already exist in the Users collection ──
-    // To grant access, an admin must add the person's email in Settings → Users first.
     const existing = await payload.find({
       collection: 'users',
       where: { email: { equals: googleUser.email } },
@@ -116,29 +86,41 @@ export async function GET(request: NextRequest) {
     const user = existing.docs[0]
 
     if (!user) {
-      // Email not in the invited list — reject
       console.warn(`Google SSO: rejected login attempt from unknown email: ${googleUser.email}`)
       return NextResponse.redirect(`${adminUrl}?error=not_invited`)
     }
 
-    const { token, cookieName } = await mintPayloadJWT(
-      payload.secret,
-      payload.config.cookiePrefix ?? 'payload',
-      { id: user.id, email: user.email, role: (user as { role: string }).role },
-    )
+    const collectionConfig = payload.collections['users'].config
+
+    const fieldsToSign = getFieldsToSign({
+      collectionConfig,
+      email: user.email as string,
+      user: user as any,
+    })
+
+    const { token } = await jwtSign({
+      fieldsToSign,
+      secret: payload.secret,
+      tokenExpiration: collectionConfig.auth.tokenExpiration || 7200,
+    })
+
+    const cookieObj = generatePayloadCookie({
+      collectionAuthConfig: collectionConfig.auth,
+      cookiePrefix: payload.config.cookiePrefix || 'payload',
+      returnCookieAsObject: true,
+      token,
+    }) as { name: string; value: string; path: string; httpOnly: boolean; secure: boolean; sameSite: 'Lax' | 'Strict' | 'None'; maxAge?: number }
 
     const response = NextResponse.redirect(adminUrl)
 
-    // Clear the CSRF state cookie
     response.cookies.delete('google_oauth_state')
 
-    // Set the Payload auth cookie
-    response.cookies.set(cookieName, token, {
-      httpOnly: true,
+    response.cookies.set(cookieObj.name, cookieObj.value, {
+      httpOnly: cookieObj.httpOnly,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7200,
+      sameSite: cookieObj.sameSite || 'lax',
+      path: cookieObj.path || '/',
+      maxAge: collectionConfig.auth.tokenExpiration || 7200,
     })
 
     return response
