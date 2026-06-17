@@ -83,7 +83,7 @@ export const WhereWeWorkSettings: GlobalConfig = {
           type: 'textarea',
           maxLength: 1000,
           admin: {
-            description: 'Description of OurMoon's work in Zambia.',
+            description: "Description of OurMoon's work in Zambia.",
           },
         },
         {
@@ -98,7 +98,7 @@ export const WhereWeWorkSettings: GlobalConfig = {
       ],
     },
 
-    // ─── UK ───────────────────────────────────────────────────────────────────
+    // ─── UK ──────────────────────────────────────────────────────────────────
     {
       label: 'UK',
       type: 'collapsible',
@@ -108,7 +108,7 @@ export const WhereWeWorkSettings: GlobalConfig = {
           type: 'textarea',
           maxLength: 1000,
           admin: {
-            description: 'Description of OurMoon's UK operations.',
+            description: "Description of OurMoon's UK operations.",
           },
         },
         {
