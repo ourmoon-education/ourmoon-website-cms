@@ -145,14 +145,14 @@ export default buildConfig({
 
   // ─── Email ───────────────────────────────────────────────────────────────
   email: nodemailerAdapter({
-    defaultFromAddress: 'notifications@apps.ourmoon.org',
+    defaultFromAddress: process.env.SMTP_USER || 'notifications@apps.ourmoon.org',
     defaultFromName: 'OurMoon Education',
     transportOptions: {
-      host: 'smtp.eu.mailgun.org',
-      port: 465,
+      host: process.env.SMTP_HOST || 'smtp.eu.mailgun.org',
+      port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465,
       secure: true,
       auth: {
-        user: 'notifications@apps.ourmoon.org',
+        user: process.env.SMTP_USER || 'notifications@apps.ourmoon.org',
         pass: process.env.SMTP_PASS,
       },
     },

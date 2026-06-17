@@ -73,6 +73,8 @@ export interface Config {
     'blog-posts': BlogPost;
     events: Event;
     'student-stories': StudentStory;
+    'team-members': TeamMember;
+    'impact-stats': ImpactStat;
     redirects: Redirect;
     search: Search;
     forms: Form;
@@ -90,6 +92,8 @@ export interface Config {
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'student-stories': StudentStoriesSelect<false> | StudentStoriesSelect<true>;
+    'team-members': TeamMembersSelect<false> | TeamMembersSelect<true>;
+    'impact-stats': ImpactStatsSelect<false> | ImpactStatsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     search: SearchSelect<false> | SearchSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -105,9 +109,21 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'site-settings': SiteSetting;
+    'impact-page-settings': ImpactPageSetting;
+    'where-we-work-settings': WhereWeWorkSetting;
+    'finance-governance-settings': FinanceGovernanceSetting;
+    'who-we-are-settings': WhoWeAreSetting;
+    'events-page-settings': EventsPageSetting;
+    'blog-page-settings': BlogPageSetting;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'impact-page-settings': ImpactPageSettingsSelect<false> | ImpactPageSettingsSelect<true>;
+    'where-we-work-settings': WhereWeWorkSettingsSelect<false> | WhereWeWorkSettingsSelect<true>;
+    'finance-governance-settings': FinanceGovernanceSettingsSelect<false> | FinanceGovernanceSettingsSelect<true>;
+    'who-we-are-settings': WhoWeAreSettingsSelect<false> | WhoWeAreSettingsSelect<true>;
+    'events-page-settings': EventsPageSettingsSelect<false> | EventsPageSettingsSelect<true>;
+    'blog-page-settings': BlogPageSettingsSelect<false> | BlogPageSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -138,7 +154,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * CMS user accounts. Admins have full access; editors can create and update content.
+ * CMS user accounts. To invite someone for Google SSO: add their email here, set their role, then ask them to sign in at content.ourmoon.org.uk/admin using the "Sign in with Google" button. They do not need a password.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
@@ -151,6 +167,9 @@ export interface User {
   role: 'admin' | 'editor';
   updatedAt: string;
   createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -251,10 +270,6 @@ export interface Programme {
    */
   publishedDate?: string | null;
   /**
-   * Schedule this content to be published automatically at this date and time. Requires a scheduled job — see CLAUDE.md.
-   */
-  scheduledPublishDate?: string | null;
-  /**
    * A short summary shown on listing pages and cards. Maximum 300 characters.
    */
   shortDescription?: string | null;
@@ -317,13 +332,9 @@ export interface BlogPost {
    */
   status: 'draft' | 'published';
   /**
-   * Auto-set when published. Override to backdate or schedule.
+   * Auto-set when published. Override to backdate.
    */
   publishedDate?: string | null;
-  /**
-   * Schedule this post to go live at a future date and time. Requires a scheduled job — see CLAUDE.md.
-   */
-  scheduledPublishDate?: string | null;
   /**
    * Author name as it should appear on the post.
    */
@@ -396,9 +407,9 @@ export interface Event {
    */
   publishedDate?: string | null;
   /**
-   * Schedule this event listing to go live at a future date and time.
+   * How attendees can participate.
    */
-  scheduledPublishDate?: string | null;
+  eventType?: ('in-person' | 'online' | 'hybrid') | null;
   /**
    * When the event starts.
    */
@@ -407,6 +418,10 @@ export interface Event {
    * When the event ends. Leave blank for single-day events.
    */
   endDate?: string | null;
+  /**
+   * Display time string, e.g. "10:00 AM – 4:00 PM" or "Doors open at 6:30 PM".
+   */
+  time?: string | null;
   /**
    * Full event details, agenda, and what to expect.
    */
@@ -426,13 +441,27 @@ export interface Event {
     [k: string]: unknown;
   } | null;
   /**
+   * Extended event content shown on the event detail page.
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
    * Physical venue address. Leave blank for online events.
    */
   location?: string | null;
-  /**
-   * Tick if this event takes place online.
-   */
-  isOnline?: boolean | null;
   /**
    * Full URL to the registration or booking page.
    */
@@ -461,6 +490,10 @@ export interface StudentStory {
    * The student's name. Use first name only or initials if the family prefers privacy.
    */
   studentName: string;
+  /**
+   * URL-friendly identifier. Auto-generated from student name on create.
+   */
+  slug?: string | null;
   /**
    * Drafts are only visible to editors.
    */
@@ -502,6 +535,54 @@ export interface StudentStory {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Team members displayed on the Who We Are page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-members".
+ */
+export interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+  /**
+   * Groups the person under the correct team section.
+   */
+  region: 'zambia' | 'uk' | 'trustee';
+  status: 'published' | 'draft';
+  /**
+   * Lower numbers appear first within the section.
+   */
+  order?: number | null;
+  /**
+   * Brief biography shown on the Who We Are page.
+   */
+  bio?: string | null;
+  /**
+   * Headshot photo. Square crops work best.
+   */
+  photo?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Key impact numbers displayed on the homepage and impact page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "impact-stats".
+ */
+export interface ImpactStat {
+  id: number;
+  value: string;
+  label: string;
+  status: 'published' | 'draft';
+  /**
+   * Display order — lower numbers appear first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Manage URL redirects. Use when you rename or move pages.
@@ -778,6 +859,14 @@ export interface PayloadLockedDocument {
         value: number | StudentStory;
       } | null)
     | ({
+        relationTo: 'team-members';
+        value: number | TeamMember;
+      } | null)
+    | ({
+        relationTo: 'impact-stats';
+        value: number | ImpactStat;
+      } | null)
+    | ({
         relationTo: 'redirects';
         value: number | Redirect;
       } | null)
@@ -843,6 +932,9 @@ export interface UsersSelect<T extends boolean = true> {
   role?: T;
   updatedAt?: T;
   createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
@@ -929,7 +1021,6 @@ export interface ProgrammesSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedDate?: T;
-  scheduledPublishDate?: T;
   shortDescription?: T;
   description?: T;
   featuredImage?: T;
@@ -954,7 +1045,6 @@ export interface BlogPostsSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedDate?: T;
-  scheduledPublishDate?: T;
   author?: T;
   excerpt?: T;
   content?: T;
@@ -984,12 +1074,13 @@ export interface EventsSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedDate?: T;
-  scheduledPublishDate?: T;
+  eventType?: T;
   startDate?: T;
   endDate?: T;
+  time?: T;
   description?: T;
+  content?: T;
   location?: T;
-  isOnline?: T;
   registrationLink?: T;
   featuredImage?: T;
   meta?:
@@ -1008,6 +1099,7 @@ export interface EventsSelect<T extends boolean = true> {
  */
 export interface StudentStoriesSelect<T extends boolean = true> {
   studentName?: T;
+  slug?: T;
   status?: T;
   featured?: T;
   shortQuote?: T;
@@ -1017,6 +1109,33 @@ export interface StudentStoriesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-members_select".
+ */
+export interface TeamMembersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  region?: T;
+  status?: T;
+  order?: T;
+  bio?: T;
+  photo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "impact-stats_select".
+ */
+export interface ImpactStatsSelect<T extends boolean = true> {
+  value?: T;
+  label?: T;
+  status?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1215,7 +1334,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Global site configuration: branding, contact details, social links, and homepage hero content.
+ * Global site configuration: branding, contact, navigation, homepage content and footer.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
@@ -1223,17 +1342,21 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface SiteSetting {
   id: number;
   /**
-   * The organisation name shown in the browser tab and header.
+   * Organisation name shown in the browser tab and header.
    */
   siteName?: string | null;
   /**
-   * Short strapline shown under the site name.
+   * Short strapline.
    */
   tagline?: string | null;
   /**
    * Main site logo. Recommended: SVG or PNG with transparent background.
    */
   logo?: (number | null) | Media;
+  /**
+   * Site favicon. Recommended: 32x32px or 64x64px .ico, .png, or .svg file.
+   */
+  favicon?: (number | null) | Media;
   /**
    * Main headline on the homepage hero section.
    */
@@ -1243,11 +1366,142 @@ export interface SiteSetting {
    */
   heroSubheadline?: string | null;
   /**
-   * Public contact email shown on the website.
+   * YouTube or Vimeo URL for the "Watch Our Film" button.
+   */
+  heroVideoUrl?: string | null;
+  /**
+   * Main hero image shown next to the headline.
+   */
+  heroImage?: (number | null) | Media;
+  /**
+   * Zambia classroom image shown in the "Founded in UK. Rooted in Zambia." section.
+   */
+  zambiaClassroomImage?: (number | null) | Media;
+  /**
+   * Logo mask image (e.g. logo icon) used at the bottom of the homepage and in the navigation header.
+   */
+  logoMaskImage?: (number | null) | Media;
+  /**
+   * Vision statement shown on the homepage.
+   */
+  visionStatement?: string | null;
+  /**
+   * Mission statement shown on the homepage.
+   */
+  missionStatement?: string | null;
+  /**
+   * Programme cards displayed in the "What We Do" section on the homepage.
+   */
+  whatWeDoCards?:
+    | {
+        /**
+         * Lucide icon name: GraduationCap, Users, Sparkles, Heart, etc.
+         */
+        iconName?: string | null;
+        /**
+         * Tailwind background + text classes e.g. "bg-teal text-white".
+         */
+        iconColor?: string | null;
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Top navigation items. Items with children render as dropdowns.
+   */
+  navigation?:
+    | {
+        label: string;
+        /**
+         * Leave blank if this item only has children (dropdown header).
+         */
+        href?: string | null;
+        children?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * URL for the Donate button in the navigation and footer.
+   */
+  donateUrl?: string | null;
+  /**
+   * UK Donation URL (Enthuse).
+   */
+  enthuseUrl?: string | null;
+  /**
+   * US Donation URL (GlobalGiving).
+   */
+  globalGivingUrl?: string | null;
+  /**
+   * Eurozone Donation URL (Maecenata).
+   */
+  maecenataUrl?: string | null;
+  /**
+   * Gift of Choice tiers shown on the donation pages and homepage.
+   */
+  giftTiers?:
+    | {
+        amount: string;
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  bankTransfer?: {
+    accountName?: string | null;
+    sortCode?: string | null;
+    accountNumber?: string | null;
+    instructions?: string | null;
+  };
+  cheque?: {
+    payeeName?: string | null;
+    postalAddress?: string | null;
+  };
+  /**
+   * Links shown in the "Explore" column of the footer. Leave empty to use the site defaults.
+   */
+  footerNavigation?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Short mission paragraph shown in the footer.
+   */
+  footerMission?: string | null;
+  /**
+   * UK registered charity number.
+   */
+  charityNumberUk?: string | null;
+  /**
+   * Zambia registered NGO number.
+   */
+  charityNumberZambia?: string | null;
+  ukOffice?: {
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  };
+  zambiaOffice?: {
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  };
+  /**
+   * Primary public contact email.
    */
   contactEmail?: string | null;
   /**
-   * Public phone number.
+   * Primary public phone number.
    */
   phone?: string | null;
   /**
@@ -1255,7 +1509,7 @@ export interface SiteSetting {
    */
   address?: string | null;
   /**
-   * Social media profiles. These appear in the site footer.
+   * Social media profiles shown in the footer.
    */
   socialLinks?:
     | {
@@ -1268,6 +1522,267 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Content for the Impact page — featured quote, inverted block, and annual reports.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "impact-page-settings".
+ */
+export interface ImpactPageSetting {
+  id: number;
+  /**
+   * Pull quote displayed prominently on the Impact page.
+   */
+  featuredQuote?: string | null;
+  /**
+   * Name of the person being quoted.
+   */
+  featuredQuoteAuthor?: string | null;
+  /**
+   * Role or context for the quote author.
+   */
+  featuredQuoteRole?: string | null;
+  /**
+   * Heading for the dark/inverted content block.
+   */
+  invertedBlockHeading?: string | null;
+  /**
+   * Introductory paragraph for the inverted block.
+   */
+  invertedBlockIntro?: string | null;
+  /**
+   * Icon + title + description items displayed in the inverted block.
+   */
+  invertedBlockItems?:
+    | {
+        /**
+         * Lucide icon name, e.g. GraduationCap, Users, Sparkles.
+         */
+        icon?: string | null;
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Annual report downloads shown on the Impact page.
+   */
+  annualReports?:
+    | {
+        year: string;
+        title: string;
+        /**
+         * The uploaded PDF or document file.
+         */
+        file: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Content for the Where We Work page — hero, map, country descriptions, and video.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "where-we-work-settings".
+ */
+export interface WhereWeWorkSetting {
+  id: number;
+  /**
+   * The hero background image.
+   */
+  heroImage?: (number | null) | Media;
+  /**
+   * Main heading in the hero section.
+   */
+  heroHeading?: string | null;
+  /**
+   * Supporting text beneath the hero heading.
+   */
+  heroSubheading?: string | null;
+  /**
+   * Google Maps embed URL for the Zambia location.
+   */
+  zambiaMapEmbedUrl?: string | null;
+  /**
+   * Description of OurMoon's work in Zambia.
+   */
+  zambiaDescription?: string | null;
+  /**
+   * Zambia office address.
+   */
+  zambiaAddress?: string | null;
+  /**
+   * Description of OurMoon's UK operations.
+   */
+  ukDescription?: string | null;
+  /**
+   * UK office address.
+   */
+  ukAddress?: string | null;
+  /**
+   * YouTube or Vimeo URL for the embedded video.
+   */
+  videoUrl?: string | null;
+  /**
+   * The video thumbnail image shown before play.
+   */
+  videoThumbnail?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Content for the Finance & Governance page — key figures, policy cards, and documents.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "finance-governance-settings".
+ */
+export interface FinanceGovernanceSetting {
+  id: number;
+  /**
+   * Headline statistics shown on the Finance & Governance page.
+   */
+  keyFigures?:
+    | {
+        value: string;
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Governance policy cards shown on the Finance & Governance page.
+   */
+  policyCards?:
+    | {
+        /**
+         * Lucide icon name, e.g. Shield, FileText, CheckCircle.
+         */
+        icon?: string | null;
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Downloadable governance and finance documents.
+   */
+  documents?:
+    | {
+        label: string;
+        /**
+         * The uploaded PDF or document file.
+         */
+        file: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Content for the Who We Are page — founding story and values.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "who-we-are-settings".
+ */
+export interface WhoWeAreSetting {
+  id: number;
+  /**
+   * Heading for the founding story section.
+   */
+  foundingStoryHeading?: string | null;
+  /**
+   * The founding story narrative.
+   */
+  foundingStoryText?: string | null;
+  /**
+   * Image shown alongside the founding story.
+   */
+  foundingStoryImage?: (number | null) | Media;
+  /**
+   * Heading for the values section.
+   */
+  valuesHeading?: string | null;
+  /**
+   * Introductory paragraph for the values section.
+   */
+  valuesIntro?: string | null;
+  /**
+   * Individual value items shown in the values section.
+   */
+  values?:
+    | {
+        /**
+         * Lucide icon name, e.g. Heart, Star, Lightbulb.
+         */
+        icon?: string | null;
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Content for the Events listing page — hero text and empty state messaging.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events-page-settings".
+ */
+export interface EventsPageSetting {
+  id: number;
+  /**
+   * Main heading for the events listing page.
+   */
+  heroHeading?: string | null;
+  /**
+   * Supporting text beneath the hero heading.
+   */
+  heroSubheading?: string | null;
+  /**
+   * Heading shown when there are no upcoming events.
+   */
+  emptyStateHeading?: string | null;
+  /**
+   * Message shown when there are no upcoming events.
+   */
+  emptyStateText?: string | null;
+  /**
+   * Call-to-action button label for the empty state.
+   */
+  emptyStateCta?: string | null;
+  /**
+   * URL for the empty state call-to-action button.
+   */
+  emptyStateCtaUrl?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Content for the Blog listing page — hero text and featured post.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-page-settings".
+ */
+export interface BlogPageSetting {
+  id: number;
+  /**
+   * Main heading for the blog listing page.
+   */
+  heroHeading?: string | null;
+  /**
+   * Supporting text beneath the hero heading.
+   */
+  heroSubheading?: string | null;
+  /**
+   * Slug of the blog post to pin at the top of the listing. Leave blank to auto-select the latest post.
+   */
+  featuredPostSlug?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -1275,8 +1790,88 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   tagline?: T;
   logo?: T;
+  favicon?: T;
   heroHeadline?: T;
   heroSubheadline?: T;
+  heroVideoUrl?: T;
+  heroImage?: T;
+  zambiaClassroomImage?: T;
+  logoMaskImage?: T;
+  visionStatement?: T;
+  missionStatement?: T;
+  whatWeDoCards?:
+    | T
+    | {
+        iconName?: T;
+        iconColor?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  navigation?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  donateUrl?: T;
+  enthuseUrl?: T;
+  globalGivingUrl?: T;
+  maecenataUrl?: T;
+  giftTiers?:
+    | T
+    | {
+        amount?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  bankTransfer?:
+    | T
+    | {
+        accountName?: T;
+        sortCode?: T;
+        accountNumber?: T;
+        instructions?: T;
+      };
+  cheque?:
+    | T
+    | {
+        payeeName?: T;
+        postalAddress?: T;
+      };
+  footerNavigation?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  footerMission?: T;
+  charityNumberUk?: T;
+  charityNumberZambia?: T;
+  ukOffice?:
+    | T
+    | {
+        address?: T;
+        phone?: T;
+        email?: T;
+      };
+  zambiaOffice?:
+    | T
+    | {
+        address?: T;
+        phone?: T;
+        email?: T;
+      };
   contactEmail?: T;
   phone?: T;
   address?: T;
@@ -1287,6 +1882,135 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "impact-page-settings_select".
+ */
+export interface ImpactPageSettingsSelect<T extends boolean = true> {
+  featuredQuote?: T;
+  featuredQuoteAuthor?: T;
+  featuredQuoteRole?: T;
+  invertedBlockHeading?: T;
+  invertedBlockIntro?: T;
+  invertedBlockItems?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  annualReports?:
+    | T
+    | {
+        year?: T;
+        title?: T;
+        file?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "where-we-work-settings_select".
+ */
+export interface WhereWeWorkSettingsSelect<T extends boolean = true> {
+  heroImage?: T;
+  heroHeading?: T;
+  heroSubheading?: T;
+  zambiaMapEmbedUrl?: T;
+  zambiaDescription?: T;
+  zambiaAddress?: T;
+  ukDescription?: T;
+  ukAddress?: T;
+  videoUrl?: T;
+  videoThumbnail?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "finance-governance-settings_select".
+ */
+export interface FinanceGovernanceSettingsSelect<T extends boolean = true> {
+  keyFigures?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  policyCards?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  documents?:
+    | T
+    | {
+        label?: T;
+        file?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "who-we-are-settings_select".
+ */
+export interface WhoWeAreSettingsSelect<T extends boolean = true> {
+  foundingStoryHeading?: T;
+  foundingStoryText?: T;
+  foundingStoryImage?: T;
+  valuesHeading?: T;
+  valuesIntro?: T;
+  values?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events-page-settings_select".
+ */
+export interface EventsPageSettingsSelect<T extends boolean = true> {
+  heroHeading?: T;
+  heroSubheading?: T;
+  emptyStateHeading?: T;
+  emptyStateText?: T;
+  emptyStateCta?: T;
+  emptyStateCtaUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-page-settings_select".
+ */
+export interface BlogPageSettingsSelect<T extends boolean = true> {
+  heroHeading?: T;
+  heroSubheading?: T;
+  featuredPostSlug?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

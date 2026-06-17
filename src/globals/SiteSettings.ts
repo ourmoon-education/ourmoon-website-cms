@@ -61,6 +61,14 @@ export const SiteSettings: GlobalConfig = {
             description: 'Main site logo. Recommended: SVG or PNG with transparent background.',
           },
         },
+        {
+          name: 'favicon',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description: 'Site favicon. Recommended: 32x32px or 64x64px .ico, .png, or .svg file.',
+          },
+        },
       ],
     },
 

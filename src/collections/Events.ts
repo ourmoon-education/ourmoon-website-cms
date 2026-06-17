@@ -28,8 +28,8 @@ export const Events: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data, operation }) => {
-        if (operation === 'create' && data?.title && !data.slug) {
+      ({ data }) => {
+        if (data?.title && !data.slug) {
           data.slug = generateSlug(data.title)
         }
         return data
@@ -116,15 +116,6 @@ export const Events: CollectionConfig = {
       },
     },
     {
-      name: 'scheduledPublishDate',
-      type: 'date',
-      admin: {
-        description: 'Schedule this event listing to go live at a future date and time.',
-        position: 'sidebar',
-        date: { displayFormat: 'd MMM yyyy HH:mm', pickerAppearance: 'dayAndTime' },
-      },
-    },
-    {
       name: 'eventType',
       type: 'select',
       options: [
@@ -186,14 +177,6 @@ export const Events: CollectionConfig = {
       admin: {
         description: 'Physical venue address. Leave blank for online events.',
         placeholder: 'e.g. OurMoon Learning Centre, 12 Science Park, London EC1A 1BB',
-      },
-    },
-    {
-      name: 'isOnline',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        description: 'Tick if this event takes place online.',
       },
     },
     {

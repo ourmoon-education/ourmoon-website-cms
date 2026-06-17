@@ -28,8 +28,8 @@ export const Programmes: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data, operation }) => {
-        if (operation === 'create' && data?.title && !data.slug) {
+      ({ data }) => {
+        if (data?.title && !data.slug) {
           data.slug = generateSlug(data.title)
         }
         return data
@@ -114,15 +114,6 @@ export const Programmes: CollectionConfig = {
         description: 'Auto-set when status changes to Published. Override manually if needed.',
         position: 'sidebar',
         date: { displayFormat: 'd MMM yyyy' },
-      },
-    },
-    {
-      name: 'scheduledPublishDate',
-      type: 'date',
-      admin: {
-        description: 'Schedule this content to be published automatically at this date and time. Requires a scheduled job — see CLAUDE.md.',
-        position: 'sidebar',
-        date: { displayFormat: 'd MMM yyyy HH:mm', pickerAppearance: 'dayAndTime' },
       },
     },
     {

@@ -27,8 +27,8 @@ export const StudentStories: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data, operation }) => {
-        if (operation === 'create' && data?.studentName && !data.slug) {
+      ({ data }) => {
+        if (data?.studentName && !data.slug) {
           data.slug = generateSlug(data.studentName)
         }
         return data

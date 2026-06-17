@@ -28,8 +28,8 @@ export const BlogPosts: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [
-      ({ data, operation }) => {
-        if (operation === 'create' && data?.title && !data.slug) {
+      ({ data }) => {
+        if (data?.title && !data.slug) {
           data.slug = generateSlug(data.title)
         }
         return data
@@ -111,18 +111,9 @@ export const BlogPosts: CollectionConfig = {
       name: 'publishedDate',
       type: 'date',
       admin: {
-        description: 'Auto-set when published. Override to backdate or schedule.',
+        description: 'Auto-set when published. Override to backdate.',
         position: 'sidebar',
         date: { displayFormat: 'd MMM yyyy' },
-      },
-    },
-    {
-      name: 'scheduledPublishDate',
-      type: 'date',
-      admin: {
-        description: 'Schedule this post to go live at a future date and time. Requires a scheduled job — see CLAUDE.md.',
-        position: 'sidebar',
-        date: { displayFormat: 'd MMM yyyy HH:mm', pickerAppearance: 'dayAndTime' },
       },
     },
     {
