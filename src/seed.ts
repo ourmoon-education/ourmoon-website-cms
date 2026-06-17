@@ -414,6 +414,30 @@ const seed = async () => {
   })
   payload.logger.info('✅ Impact page settings seeded')
 
+  // ─── Events Page Settings ──────────────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'events-page-settings',
+    data: {
+      heroHeading: 'Events & Open Days',
+      heroSubheading: 'Join our workshops, presentations, and events to discover more about OurMoon.',
+      emptyStateHeading: 'No upcoming events right now',
+      emptyStateText: 'Please check back later or subscribe to our newsletter to receive updates on future events.',
+      emptyStateCta: 'Subscribe to newsletter',
+      emptyStateCtaUrl: '/get-in-touch',
+    }
+  })
+  payload.logger.info('✅ Events Page settings seeded')
+
+  // ─── Blog Page Settings ────────────────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'blog-page-settings',
+    data: {
+      heroHeading: 'News & Stories',
+      heroSubheading: 'Discover the latest stories from OurMoon scholars, alumni, and partners.',
+    }
+  })
+  payload.logger.info('✅ Blog Page settings seeded')
+
   payload.logger.info('🌙 Seed complete!')
   process.exit(0)
 }

@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
       '**/*.spec.*',
     ],
   },
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
