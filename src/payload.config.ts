@@ -200,7 +200,7 @@ export default buildConfig({
   // ─── Seed Script ─────────────────────────────────────────────────────────
   bin: [
     {
-      scriptPath: path.resolve(dirname, 'seed.ts'),
+      scriptPath: path.resolve(process.cwd(), 'src/seed.ts'),
       key: 'seed',
     },
   ],

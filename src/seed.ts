@@ -225,221 +225,271 @@ const seed = async () => {
   }
 
   // ─── Site Settings ────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (payload.updateGlobal as any)({
-    slug: 'site-settings',
-    data: {
-      siteName: 'OurMoon Education',
-      tagline: 'Changing one life to change thousands',
-      heroHeadline: 'Changing one life to change thousands.',
-      heroSubheadline: "At Our Moon, we believe Africa's future leaders are well-educated, socially-conscious critical thinkers — proud of their heritage and ready to lead. We empower Zambia's brightest young people to meet their full potential.",
-      heroVideoUrl: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
-      visionStatement: 'Social mobility that empowers African youth to drive change across the continent.',
-      missionStatement: "To inspire, educate and unleash the potential of Zambia's young people to become future leaders.",
-      whatWeDoCards: [
-        {
-          iconName: 'GraduationCap',
-          iconColor: 'bg-teal text-white',
-          title: 'Young Leaders Programme',
-          description: 'A residential gap-year programme building academic, leadership and life skills.',
+  const existingSiteSettings = await (payload.findGlobal as any)({ slug: 'site-settings' }).catch(() => null)
+  if (!existingSiteSettings || !existingSiteSettings.siteName) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (payload.updateGlobal as any)({
+      slug: 'site-settings',
+      data: {
+        siteName: 'OurMoon Education',
+        tagline: 'Changing one life to change thousands',
+        heroHeadline: 'Changing one life to change thousands.',
+        heroSubheadline: "At Our Moon, we believe Africa's future leaders are well-educated, socially-conscious critical thinkers — proud of their heritage and ready to lead. We empower Zambia's brightest young people to meet their full potential.",
+        heroVideoUrl: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
+        visionStatement: 'Social mobility that empowers African youth to drive change across the continent.',
+        missionStatement: "To inspire, educate and unleash the potential of Zambia's young people to become future leaders.",
+        whatWeDoCards: [
+          {
+            iconName: 'GraduationCap',
+            iconColor: 'bg-teal text-white',
+            title: 'Young Leaders Programme',
+            description: 'A residential gap-year programme building academic, leadership and life skills.',
+          },
+          {
+            iconName: 'Users',
+            iconColor: 'bg-pink text-white',
+            title: 'University Placement',
+            description: 'Mentoring scholars into top universities at home and around the world.',
+          },
+          {
+            iconName: 'Sparkles',
+            iconColor: 'bg-lime text-teal-deep',
+            title: 'Mentorship Network',
+            description: 'Connecting alumni and industry leaders with the next generation of scholars.',
+          },
+          {
+            iconName: 'Heart',
+            iconColor: 'bg-blue text-white',
+            title: 'Community Impact',
+            description: 'Empowering returning scholars to drive change across their communities.',
+          },
+        ],
+        navigation: [
+          {
+            label: 'Who We Are',
+            children: [
+              { label: 'About Us', href: '/who-we-are' },
+              { label: 'Finance & Governance', href: '/who-we-are/finance-and-governance' },
+            ],
+          },
+          {
+            label: 'Our Work',
+            children: [
+              { label: 'Our Work', href: '/our-work' },
+              { label: 'Impact', href: '/our-work/impact' },
+              { label: 'Where We Work', href: '/our-work/where-we-work' },
+            ],
+          },
+          {
+            label: 'Programmes',
+            children: [
+              { label: 'All Programmes', href: '/our-programmes' },
+              { label: 'Young Leaders', href: '/our-programmes/young-leaders-programme' },
+              { label: 'Identity & Expression', href: '/our-programmes/identity-and-expression-programme' },
+              { label: 'Postgraduate', href: '/our-programmes/post-graduate-programme' },
+              { label: 'Alumni', href: '/our-programmes/alumni-programme' },
+              { label: 'Value Added Volunteering', href: '/our-programmes/value-added-volunteering' },
+            ],
+          },
+          {
+            label: 'Get Involved',
+            children: [
+              { label: 'Ways to Help', href: '/get-involved' },
+              { label: 'Donate', href: '/get-involved/donate' },
+              { label: 'Gift of Choice', href: '/get-involved/donate/giftofchoice' },
+              { label: 'Events', href: '/events' },
+              { label: 'Partner With Us', href: '/get-involved/partner-with-us' },
+            ],
+          },
+          { label: 'Blog', href: '/blog' },
+          { label: 'Contact', href: '/get-in-touch' },
+        ],
+        donateUrl: '/get-involved/donate',
+        footerMission: "Changing one life to change thousands. Empowering Zambia's brightest, most underserved young people to become tomorrow's leaders.",
+        charityNumberUk: '1165083',
+        charityNumberZambia: '101/0688/17',
+        ukOffice: {
+          address: 'The Coach House,\nHurstwood Lane,\nTunbridge Wells, Kent TN4 8YA',
+          phone: '+44 (0)7720 287904',
+          email: 'helen.leale-green@ourmoon.org.uk',
         },
-        {
-          iconName: 'Users',
-          iconColor: 'bg-pink text-white',
-          title: 'University Placement',
-          description: 'Mentoring scholars into top universities at home and around the world.',
+        zambiaOffice: {
+          address: 'Chipansha Village,\nChibombo District,\nCentral Province, Zambia',
+          phone: '+260 972 221856',
+          email: 'justin.mushitu@ourmoon.org.uk',
         },
-        {
-          iconName: 'Sparkles',
-          iconColor: 'bg-lime text-teal-deep',
-          title: 'Mentorship Network',
-          description: 'Connecting alumni and industry leaders with the next generation of scholars.',
-        },
-        {
-          iconName: 'Heart',
-          iconColor: 'bg-blue text-white',
-          title: 'Community Impact',
-          description: 'Empowering returning scholars to drive change across their communities.',
-        },
-      ],
-      navigation: [
-        {
-          label: 'Who We Are',
-          children: [
-            { label: 'About Us', href: '/who-we-are' },
-            { label: 'Finance & Governance', href: '/who-we-are/finance-and-governance' },
-          ],
-        },
-        {
-          label: 'Our Work',
-          children: [
-            { label: 'Our Work', href: '/our-work' },
-            { label: 'Impact', href: '/our-work/impact' },
-            { label: 'Where We Work', href: '/our-work/where-we-work' },
-          ],
-        },
-        {
-          label: 'Programmes',
-          children: [
-            { label: 'All Programmes', href: '/our-programmes' },
-            { label: 'Young Leaders', href: '/our-programmes/young-leaders-programme' },
-            { label: 'Identity & Expression', href: '/our-programmes/identity-and-expression-programme' },
-            { label: 'Postgraduate', href: '/our-programmes/post-graduate-programme' },
-            { label: 'Alumni', href: '/our-programmes/alumni-programme' },
-            { label: 'Value Added Volunteering', href: '/our-programmes/value-added-volunteering' },
-          ],
-        },
-        {
-          label: 'Get Involved',
-          children: [
-            { label: 'Ways to Help', href: '/get-involved' },
-            { label: 'Donate', href: '/get-involved/donate' },
-            { label: 'Gift of Choice', href: '/get-involved/donate/giftofchoice' },
-            { label: 'Events', href: '/events' },
-            { label: 'Partner With Us', href: '/get-involved/partner-with-us' },
-          ],
-        },
-        { label: 'Blog', href: '/blog' },
-        { label: 'Contact', href: '/get-in-touch' },
-      ],
-      donateUrl: '/get-involved/donate',
-      footerMission: "Changing one life to change thousands. Empowering Zambia's brightest, most underserved young people to become tomorrow's leaders.",
-      charityNumberUk: '1165083',
-      charityNumberZambia: '101/0688/17',
-      ukOffice: {
-        address: 'The Coach House,\nHurstwood Lane,\nTunbridge Wells, Kent TN4 8YA',
+        contactEmail: 'hello@ourmoon.org.uk',
         phone: '+44 (0)7720 287904',
-        email: 'helen.leale-green@ourmoon.org.uk',
+        enthuseUrl: 'https://enthuse.com/donate/ourmoon',
+        globalGivingUrl: 'https://globalgiving.org/projects/ourmoon',
+        maecenataUrl: 'https://maecenata.de/donate/ourmoon',
+        giftTiers: [
+          { amount: '£25', title: 'Books & supplies', description: 'Equip a student with the textbooks and study materials they need for the year.' },
+          { amount: '£50', title: 'A week of meals', description: 'Ensure a student on our residential campus is nourished and ready to learn.' },
+          { amount: '£75', title: 'A month of meals', description: 'Four weeks of nutritious meals for one student on the Young Leaders Programme.' },
+          { amount: '£150', title: 'University application support', description: 'Cover the cost of application materials, testing fees and guidance for one student.' },
+          { amount: '£250', title: 'Sponsor a scholar', description: 'Make a meaningful contribution toward the full cost of one student\'s programme place.' },
+          { amount: '£500', title: 'Full scholarship contribution', description: 'Cover a significant portion of the annual cost of supporting one of our students.' }
+        ],
+        bankTransfer: {
+          accountName: 'Our Moon Education',
+          sortCode: 'Please contact us',
+          accountNumber: 'Please contact us',
+          instructions: 'Please use your name as the reference.'
+        },
+        cheque: {
+          payeeName: 'Our Moon Education',
+          postalAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA'
+        },
       },
-      zambiaOffice: {
-        address: 'Chipansha Village,\nChibombo District,\nCentral Province, Zambia',
-        phone: '+260 972 221856',
-        email: 'justin.mushitu@ourmoon.org.uk',
-      },
-      contactEmail: 'hello@ourmoon.org.uk',
-      phone: '+44 (0)7720 287904',
-      enthuseUrl: 'https://enthuse.com/donate/ourmoon',
-      globalGivingUrl: 'https://globalgiving.org/projects/ourmoon',
-      maecenataUrl: 'https://maecenata.de/donate/ourmoon',
-      giftTiers: [
-        { amount: '£25', title: 'Books & supplies', description: 'Equip a student with the textbooks and study materials they need for the year.' },
-        { amount: '£50', title: 'A week of meals', description: 'Ensure a student on our residential campus is nourished and ready to learn.' },
-        { amount: '£75', title: 'A month of meals', description: 'Four weeks of nutritious meals for one student on the Young Leaders Programme.' },
-        { amount: '£150', title: 'University application support', description: 'Cover the cost of application materials, testing fees and guidance for one student.' },
-        { amount: '£250', title: 'Sponsor a scholar', description: 'Make a meaningful contribution toward the full cost of one student\'s programme place.' },
-        { amount: '£500', title: 'Full scholarship contribution', description: 'Cover a significant portion of the annual cost of supporting one of our students.' }
-      ],
-      bankTransfer: {
-        accountName: 'Our Moon Education',
-        sortCode: 'Please contact us',
-        accountNumber: 'Please contact us',
-        instructions: 'Please use your name as the reference.'
-      },
-      cheque: {
-        payeeName: 'Our Moon Education',
-        postalAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA'
-      },
-    },
-  })
-  payload.logger.info('✅ Site settings seeded')
+    })
+    payload.logger.info('✅ Site settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Site settings already configured. Skipping.')
+  }
 
   // ─── Who We Are Settings ───────────────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'who-we-are-settings',
-    data: {
-      foundingStoryHeading: 'Born from a belief that talent knows no borders.',
-      foundingStoryText: 'Our Moon was founded in 2014 by Helen and Richard Leale-Green, who saw extraordinary potential in Zambia\'s youth being held back purely by circumstance. We started with five students. Today we have supported over 200 young leaders across five continents.',
-      valuesHeading: 'Our Values',
-      valuesIntro: 'Four principles that guide every decision we make.',
-      values: [
-        { icon: '✦', title: 'Integrity', description: 'We are honest, transparent and accountable in everything we do.' },
-        { icon: '🏆', title: 'Excellence', description: 'We hold ourselves and our students to the highest standards.' },
-        { icon: '🤝', title: 'Belonging', description: 'Every student belongs — we celebrate heritage and foster community.' },
-        { icon: '🚀', title: 'Agency', description: 'We give young people tools and confidence to own their futures.' },
-      ]
-    }
-  })
-  payload.logger.info('✅ Who We Are settings seeded')
+  const existingWhoWeAre = await (payload.findGlobal as any)({ slug: 'who-we-are-settings' }).catch(() => null)
+  if (!existingWhoWeAre || !existingWhoWeAre.foundingStoryHeading) {
+    await (payload.updateGlobal as any)({
+      slug: 'who-we-are-settings',
+      data: {
+        foundingStoryHeading: 'Born from a belief that talent knows no borders.',
+        foundingStoryText: 'Our Moon was founded in 2014 by Helen and Richard Leale-Green, who saw extraordinary potential in Zambia\'s youth being held back purely by circumstance. We started with five students. Today we have supported over 200 young leaders across five continents.',
+        valuesHeading: 'Our Values',
+        valuesIntro: 'Four principles that guide every decision we make.',
+        values: [
+          { icon: '✦', title: 'Integrity', description: 'We are honest, transparent and accountable in everything we do.' },
+          { icon: '🏆', title: 'Excellence', description: 'We hold ourselves and our students to the highest standards.' },
+          { icon: '🤝', title: 'Belonging', description: 'Every student belongs — we celebrate heritage and foster community.' },
+          { icon: '🚀', title: 'Agency', description: 'We give young people tools and confidence to own their futures.' },
+        ]
+      }
+    })
+    payload.logger.info('✅ Who We Are settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Who We Are settings already configured. Skipping.')
+  }
 
   // ─── Where We Work Settings ─────────────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'where-we-work-settings',
-    data: {
-      heroHeading: 'Rooted in Zambia. Reaching the world.',
-      heroSubheading: 'Our residential campus sits in Mbulo–Chipansha village in Zambia\'s Central Province. From here, we\'ve launched over 200 young leaders onto a global stage.',
-      zambiaDescription: 'Our campus in Chipansha village is the heart of Our Moon\'s operations. It\'s where the Young Leaders Programme runs, where students live, study and grow, and where our Zambia team works year-round.',
-      zambiaAddress: 'Chipansha Village, Chibombo District, Central Province, Zambia',
-      zambiaMapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3851.3414006155554!2d28.232230000000003!3d-14.862413!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x194091c6bf4cd2db%3A0xc6cb5a75369bb9c6!2sOur%20Moon%20Education%20Campus!5e0!3m2!1sen!2szm!4v1700000000000!5m2!1sen!2szm',
-      ukDescription: 'Our UK office coordinates fundraising, partnerships, communications and governance. We work with UK universities, schools and supporters to bring resources and opportunity to our students in Zambia.',
-      ukAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA',
-      videoUrl: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
-    }
-  })
-  payload.logger.info('✅ Where We Work settings seeded')
+  const existingWhereWeWork = await (payload.findGlobal as any)({ slug: 'where-we-work-settings' }).catch(() => null)
+  if (!existingWhereWeWork || !existingWhereWeWork.heroHeading) {
+    await (payload.updateGlobal as any)({
+      slug: 'where-we-work-settings',
+      data: {
+        heroHeading: 'Rooted in Zambia. Reaching the world.',
+        heroSubheading: 'Our residential campus sits in Mbulo–Chipansha village in Zambia\'s Central Province. From here, we\'ve launched over 200 young leaders onto a global stage.',
+        zambiaDescription: 'Our campus in Chipansha village is the heart of Our Moon\'s operations. It\'s where the Young Leaders Programme runs, where students live, study and grow, and where our Zambia team works year-round.',
+        zambiaAddress: 'Chipansha Village, Chibombo District, Central Province, Zambia',
+        zambiaMapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3851.3414006155554!2d28.232230000000003!3d-14.862413!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x194091c6bf4cd2db%3A0xc6cb5a75369bb9c6!2sOur%20Moon%20Education%20Campus!5e0!3m2!1sen!2szm!4v1700000000000!5m2!1sen!2szm',
+        ukDescription: 'Our UK office coordinates fundraising, partnerships, communications and governance. We work with UK universities, schools and supporters to bring resources and opportunity to our students in Zambia.',
+        ukAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA',
+        videoUrl: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
+      }
+    })
+    payload.logger.info('✅ Where We Work settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Where We Work settings already configured. Skipping.')
+  }
 
   // ─── Finance Governance Settings ───────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'finance-governance-settings',
-    data: {
-      keyFigures: [
-        { value: '£450,000', label: 'Annual operational budget' },
-        { value: '94%', label: 'Goes directly to programmes and students' },
-        { value: '100%', label: 'Of student scholarships fully funded' }
-      ],
-      policyCards: [
-        { icon: 'Shield', title: 'Safeguarding Policy', description: 'All staff, trustees and volunteers undergo enhanced DBS checks and safeguarding training.' },
-        { icon: 'Lock', title: 'Data Protection (GDPR)', description: 'We handle all personal data in accordance with GDPR and the Data Protection Act 2018.' },
-        { icon: 'Scale', title: 'Equal Opportunities', description: 'We are committed to equality in all our work, regardless of background, gender, race or belief.' },
-        { icon: 'BarChart', title: 'Financial Controls', description: 'Our accounts are independently examined and filed with the Charity Commission annually.' }
-      ]
-    }
-  })
-  payload.logger.info('✅ Finance & Governance settings seeded')
+  const existingFinanceGov = await (payload.findGlobal as any)({ slug: 'finance-governance-settings' }).catch(() => null)
+  if (!existingFinanceGov || !existingFinanceGov.keyFigures || existingFinanceGov.keyFigures.length === 0) {
+    await (payload.updateGlobal as any)({
+      slug: 'finance-governance-settings',
+      data: {
+        keyFigures: [
+          { value: '£450,000', label: 'Annual operational budget' },
+          { value: '94%', label: 'Goes directly to programmes and students' },
+          { value: '100%', label: 'Of student scholarships fully funded' }
+        ],
+        policyCards: [
+          { icon: 'Shield', title: 'Safeguarding Policy', description: 'All staff, trustees and volunteers undergo enhanced DBS checks and safeguarding training.' },
+          { icon: 'Lock', title: 'Data Protection (GDPR)', description: 'We handle all personal data in accordance with GDPR and the Data Protection Act 2018.' },
+          { icon: 'Scale', title: 'Equal Opportunities', description: 'We are committed to equality in all our work, regardless of background, gender, race or belief.' },
+          { icon: 'BarChart', title: 'Financial Controls', description: 'Our accounts are independently examined and filed with the Charity Commission annually.' }
+        ]
+      }
+    })
+    payload.logger.info('✅ Finance & Governance settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Finance & Governance settings already configured. Skipping.')
+  }
 
   // ─── Impact Page Settings ──────────────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'impact-page-settings',
-    data: {
-      featuredQuote: "Our Moon didn't just change my future — it showed me I had the power to change my country's future too.",
-      featuredQuoteAuthor: 'Cathy Mwila',
-      featuredQuoteRole: 'YLP Alumni, now studying in the United States',
-      invertedBlockHeading: 'Why Our Work Matters',
-      invertedBlockIntro: 'Zambia has one of the youngest populations in the world, but access to high-quality, transformative higher education is extremely limited. We are bridge builders.',
-      invertedBlockItems: [
-        { icon: 'GraduationCap', title: 'Academic Excellence', description: 'Students gain access to top universities in Zambia, the UK, US, Canada and beyond.' },
-        { icon: 'Users', title: 'Global Networks', description: 'Alumni now work and study across five continents, building lifelong connections.' },
-        { icon: 'Sparkles', title: 'Community Leadership', description: 'Every scholar becomes a role model, creating ripple effects of aspiration in their home communities.' }
-      ]
-    }
-  })
-  payload.logger.info('✅ Impact page settings seeded')
+  const existingImpactPage = await (payload.findGlobal as any)({ slug: 'impact-page-settings' }).catch(() => null)
+  if (!existingImpactPage || !existingImpactPage.featuredQuote) {
+    await (payload.updateGlobal as any)({
+      slug: 'impact-page-settings',
+      data: {
+        featuredQuote: "Our Moon didn't just change my future — it showed me I had the power to change my country's future too.",
+        featuredQuoteAuthor: 'Cathy Mwila',
+        featuredQuoteRole: 'YLP Alumni, now studying in the United States',
+        invertedBlockHeading: 'Why Our Work Matters',
+        invertedBlockIntro: 'Zambia has one of the youngest populations in the world, but access to high-quality, transformative higher education is extremely limited. We are bridge builders.',
+        invertedBlockItems: [
+          { icon: 'GraduationCap', title: 'Academic Excellence', description: 'Students gain access to top universities in Zambia, the UK, US, Canada and beyond.' },
+          { icon: 'Users', title: 'Global Networks', description: 'Alumni now work and study across five continents, building lifelong connections.' },
+          { icon: 'Sparkles', title: 'Community Leadership', description: 'Every scholar becomes a role model, creating ripple effects of aspiration in their home communities.' }
+        ]
+      }
+    })
+    payload.logger.info('✅ Impact page settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Impact page settings already configured. Skipping.')
+  }
 
   // ─── Events Page Settings ──────────────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'events-page-settings',
-    data: {
-      heroHeading: 'Events & Open Days',
-      heroSubheading: 'Join our workshops, presentations, and events to discover more about OurMoon.',
-      emptyStateHeading: 'No upcoming events right now',
-      emptyStateText: 'Please check back later or subscribe to our newsletter to receive updates on future events.',
-      emptyStateCta: 'Subscribe to newsletter',
-      emptyStateCtaUrl: '/get-in-touch',
-    }
-  })
-  payload.logger.info('✅ Events Page settings seeded')
+  const existingEventsPage = await (payload.findGlobal as any)({ slug: 'events-page-settings' }).catch(() => null)
+  if (!existingEventsPage || !existingEventsPage.heroHeading) {
+    await (payload.updateGlobal as any)({
+      slug: 'events-page-settings',
+      data: {
+        heroHeading: 'Events & Open Days',
+        heroSubheading: 'Join our workshops, presentations, and events to discover more about OurMoon.',
+        emptyStateHeading: 'No upcoming events right now',
+        emptyStateText: 'Please check back later or subscribe to our newsletter to receive updates on future events.',
+        emptyStateCta: 'Subscribe to newsletter',
+        emptyStateCtaUrl: '/get-in-touch',
+      }
+    })
+    payload.logger.info('✅ Events Page settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Events Page settings already configured. Skipping.')
+  }
 
   // ─── Blog Page Settings ────────────────────────────────────────────────────
-  await (payload.updateGlobal as any)({
-    slug: 'blog-page-settings',
-    data: {
-      heroHeading: 'News & Stories',
-      heroSubheading: 'Discover the latest stories from OurMoon scholars, alumni, and partners.',
-    }
-  })
-  payload.logger.info('✅ Blog Page settings seeded')
+  const existingBlogPage = await (payload.findGlobal as any)({ slug: 'blog-page-settings' }).catch(() => null)
+  if (!existingBlogPage || !existingBlogPage.heroHeading) {
+    await (payload.updateGlobal as any)({
+      slug: 'blog-page-settings',
+      data: {
+        heroHeading: 'News & Stories',
+        heroSubheading: 'Discover the latest stories from OurMoon scholars, alumni, and partners.',
+      }
+    })
+    payload.logger.info('✅ Blog Page settings seeded')
+  } else {
+    payload.logger.info('ℹ️ Blog Page settings already configured. Skipping.')
+  }
 
   payload.logger.info('🌙 Seed complete!')
   process.exit(0)
 }
 
 export const script = seed
+
+// Enable direct execution of the seed script using npx tsx src/seed.ts
+if (process.argv[1] && (process.argv[1].endsWith('seed.ts') || process.argv[1].endsWith('seed.js'))) {
+  console.log('🌱 Starting database seed...')
+  seed()
+    .then(() => {
+      console.log('🌙 Seed completed successfully!')
+      process.exit(0)
+    })
+    .catch((err) => {
+      console.error('❌ Seed failed:', err)
+      process.exit(1)
+    })
+}
+
