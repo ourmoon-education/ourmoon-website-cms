@@ -54,9 +54,10 @@ COPY --from=builder /app/tsconfig.json /app/cli/tsconfig.json
 # Remove this line if you do not have this folder
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
+# Set the correct permission for prerender cache and media uploads
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+RUN mkdir -p /app/media && chown -R nextjs:nodejs /app/media
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
