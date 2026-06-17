@@ -112,26 +112,20 @@ export async function GET(request: NextRequest) {
 
     const payload = await getPayload({ config })
 
-    // Find existing user by email
+    // ── Invite-only: only allow users that already exist in the Users collection ──
+    // To grant access, an admin must add the person's email in Settings → Users first.
     const existing = await payload.find({
       collection: 'users',
       where: { email: { equals: googleUser.email } },
       limit: 1,
     })
 
-    let user = existing.docs[0]
+    const user = existing.docs[0]
 
     if (!user) {
-      // Create new editor account for first-time Google login
-      user = await payload.create({
-        collection: 'users',
-        data: {
-          email: googleUser.email,
-          // Random password — user will only sign in via Google
-          password: crypto.randomUUID(),
-          role: 'editor',
-        },
-      })
+      // Email not in the invited list — reject
+      console.warn(`Google SSO: rejected login attempt from unknown email: ${googleUser.email}`)
+      return NextResponse.redirect(`${adminUrl}?error=not_invited`)
     }
 
     const { token, cookieName } = await mintPayloadJWT(
