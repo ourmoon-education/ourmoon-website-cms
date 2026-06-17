@@ -25,7 +25,8 @@ COPY . .
 # Dummy env vars for build stage so next build compiles without live DB connection
 ENV DATABASE_URI="postgresql://postgres:dummy@localhost:5432/dummy"
 ENV PAYLOAD_SECRET="dummy-secret-at-least-32-characters-long-for-build"
-ENV NEXT_PUBLIC_SERVER_URL="http://localhost:3000"
+ARG NEXT_PUBLIC_SERVER_URL="http://localhost:3000"
+ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
