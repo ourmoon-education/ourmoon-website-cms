@@ -203,6 +203,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "_student_stories_v" ADD COLUMN "version_slug" varchar;
   ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "team_members_id" integer;
   ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "impact_stats_id" integer;
+  ALTER TABLE "site_settings" ADD COLUMN "favicon_id" integer;
   ALTER TABLE "site_settings" ADD COLUMN "hero_video_url" varchar;
   ALTER TABLE "site_settings" ADD COLUMN "hero_image_id" integer;
   ALTER TABLE "site_settings" ADD COLUMN "zambia_classroom_image_id" integer;
@@ -279,6 +280,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "who_we_are_settings_founding_story_image_idx" ON "who_we_are_settings" USING btree ("founding_story_image_id");
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_team_members_fk" FOREIGN KEY ("team_members_id") REFERENCES "public"."team_members"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_impact_stats_fk" FOREIGN KEY ("impact_stats_id") REFERENCES "public"."impact_stats"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "site_settings" ADD CONSTRAINT "site_settings_favicon_id_media_id_fk" FOREIGN KEY ("favicon_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "site_settings" ADD CONSTRAINT "site_settings_hero_image_id_media_id_fk" FOREIGN KEY ("hero_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "site_settings" ADD CONSTRAINT "site_settings_zambia_classroom_image_id_media_id_fk" FOREIGN KEY ("zambia_classroom_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "site_settings" ADD CONSTRAINT "site_settings_logo_mask_image_id_media_id_fk" FOREIGN KEY ("logo_mask_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
@@ -286,9 +288,18 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "_student_stories_v_version_version_slug_idx" ON "_student_stories_v" USING btree ("version_slug");
   CREATE INDEX "payload_locked_documents_rels_team_members_id_idx" ON "payload_locked_documents_rels" USING btree ("team_members_id");
   CREATE INDEX "payload_locked_documents_rels_impact_stats_id_idx" ON "payload_locked_documents_rels" USING btree ("impact_stats_id");
+  CREATE INDEX "site_settings_favicon_idx" ON "site_settings" USING btree ("favicon_id");
   CREATE INDEX "site_settings_hero_image_idx" ON "site_settings" USING btree ("hero_image_id");
   CREATE INDEX "site_settings_zambia_classroom_image_idx" ON "site_settings" USING btree ("zambia_classroom_image_id");
-  CREATE INDEX "site_settings_logo_mask_image_idx" ON "site_settings" USING btree ("logo_mask_image_id");`)
+  CREATE INDEX "site_settings_logo_mask_image_idx" ON "site_settings" USING btree ("logo_mask_image_id");
+  ALTER TABLE "programmes" DROP COLUMN "scheduled_publish_date";
+  ALTER TABLE "_programmes_v" DROP COLUMN "version_scheduled_publish_date";
+  ALTER TABLE "blog_posts" DROP COLUMN "scheduled_publish_date";
+  ALTER TABLE "_blog_posts_v" DROP COLUMN "version_scheduled_publish_date";
+  ALTER TABLE "events" DROP COLUMN "scheduled_publish_date";
+  ALTER TABLE "events" DROP COLUMN "is_online";
+  ALTER TABLE "_events_v" DROP COLUMN "version_scheduled_publish_date";
+  ALTER TABLE "_events_v" DROP COLUMN "version_is_online";`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
@@ -335,6 +346,8 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   
   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_impact_stats_fk";
   
+  ALTER TABLE "site_settings" DROP CONSTRAINT "site_settings_favicon_id_media_id_fk";
+  
   ALTER TABLE "site_settings" DROP CONSTRAINT "site_settings_hero_image_id_media_id_fk";
   
   ALTER TABLE "site_settings" DROP CONSTRAINT "site_settings_zambia_classroom_image_id_media_id_fk";
@@ -345,9 +358,18 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP INDEX "_student_stories_v_version_version_slug_idx";
   DROP INDEX "payload_locked_documents_rels_team_members_id_idx";
   DROP INDEX "payload_locked_documents_rels_impact_stats_id_idx";
+  DROP INDEX "site_settings_favicon_idx";
   DROP INDEX "site_settings_hero_image_idx";
   DROP INDEX "site_settings_zambia_classroom_image_idx";
   DROP INDEX "site_settings_logo_mask_image_idx";
+  ALTER TABLE "programmes" ADD COLUMN "scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "_programmes_v" ADD COLUMN "version_scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "blog_posts" ADD COLUMN "scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "_blog_posts_v" ADD COLUMN "version_scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "events" ADD COLUMN "scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "events" ADD COLUMN "is_online" boolean DEFAULT false;
+  ALTER TABLE "_events_v" ADD COLUMN "version_scheduled_publish_date" timestamp(3) with time zone;
+  ALTER TABLE "_events_v" ADD COLUMN "version_is_online" boolean DEFAULT false;
   ALTER TABLE "users" DROP COLUMN "enable_a_p_i_key";
   ALTER TABLE "users" DROP COLUMN "api_key";
   ALTER TABLE "users" DROP COLUMN "api_key_index";
@@ -361,6 +383,7 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   ALTER TABLE "_student_stories_v" DROP COLUMN "version_slug";
   ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "team_members_id";
   ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "impact_stats_id";
+  ALTER TABLE "site_settings" DROP COLUMN "favicon_id";
   ALTER TABLE "site_settings" DROP COLUMN "hero_video_url";
   ALTER TABLE "site_settings" DROP COLUMN "hero_image_id";
   ALTER TABLE "site_settings" DROP COLUMN "zambia_classroom_image_id";
