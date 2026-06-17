@@ -122,13 +122,12 @@ export const FinanceGovernanceSettings: GlobalConfig = {
               admin: { placeholder: 'e.g. Audited Accounts 2023–24' },
             },
             {
-              name: 'fileUrl',
-              type: 'text',
+              name: 'file',
+              type: 'relationship',
+              relationTo: 'media',
               required: true,
-              maxLength: 1000,
               admin: {
-                description: 'Direct URL to the PDF or document file.',
-                placeholder: 'https://...',
+                description: 'The uploaded PDF or document file.',
               },
             },
           ],

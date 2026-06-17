@@ -96,9 +96,38 @@ export const SiteSettings: GlobalConfig = {
             placeholder: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
           },
         },
+        {
+          name: 'heroImage',
+          type: 'relationship',
+          relationTo: 'media',
+          admin: {
+            description: 'Main hero image shown next to the headline.',
+          },
+        },
       ],
     },
-
+    {
+      label: 'Homepage Images',
+      type: 'collapsible',
+      fields: [
+        {
+          name: 'zambiaClassroomImage',
+          type: 'relationship',
+          relationTo: 'media',
+          admin: {
+            description: 'Zambia classroom image shown in the "Founded in UK. Rooted in Zambia." section.',
+          },
+        },
+        {
+          name: 'logoMaskImage',
+          type: 'relationship',
+          relationTo: 'media',
+          admin: {
+            description: 'Logo mask image (e.g. logo icon) used at the bottom of the homepage and in the navigation header.',
+          },
+        },
+      ],
+    },
     // ─── Vision & Mission ────────────────────────────────────────────────────
     {
       label: 'Vision & Mission',
@@ -234,6 +263,116 @@ export const SiteSettings: GlobalConfig = {
             description: 'URL for the Donate button in the navigation and footer.',
             placeholder: 'https://www.justgiving.com/ourmoon',
           },
+        },
+      ],
+    },
+    {
+      label: 'Donation Settings',
+      type: 'collapsible',
+      fields: [
+        {
+          name: 'enthuseUrl',
+          type: 'text',
+          maxLength: 500,
+          admin: {
+            description: 'UK Donation URL (Enthuse).',
+            placeholder: 'https://...',
+          },
+        },
+        {
+          name: 'globalGivingUrl',
+          type: 'text',
+          maxLength: 500,
+          admin: {
+            description: 'US Donation URL (GlobalGiving).',
+            placeholder: 'https://...',
+          },
+        },
+        {
+          name: 'maecenataUrl',
+          type: 'text',
+          maxLength: 500,
+          admin: {
+            description: 'Eurozone Donation URL (Maecenata).',
+            placeholder: 'https://...',
+          },
+        },
+        {
+          name: 'giftTiers',
+          type: 'array',
+          admin: {
+            description: 'Gift of Choice tiers shown on the donation pages and homepage.',
+          },
+          fields: [
+            {
+              name: 'amount',
+              type: 'text',
+              required: true,
+              maxLength: 20,
+              admin: { placeholder: 'e.g. £25' },
+            },
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+              maxLength: 100,
+              admin: { placeholder: 'e.g. Books & supplies' },
+            },
+            {
+              name: 'description',
+              type: 'textarea',
+              maxLength: 400,
+              admin: { placeholder: 'e.g. Equip a student with textbooks for the year.' },
+            },
+          ],
+        },
+        {
+          name: 'bankTransfer',
+          type: 'group',
+          fields: [
+            {
+              name: 'accountName',
+              type: 'text',
+              maxLength: 150,
+              admin: { placeholder: 'Our Moon Education' },
+            },
+            {
+              name: 'sortCode',
+              type: 'text',
+              maxLength: 50,
+              admin: { placeholder: 'e.g. 40-44-37 or Please contact us' },
+            },
+            {
+              name: 'accountNumber',
+              type: 'text',
+              maxLength: 50,
+              admin: { placeholder: 'e.g. 12345678 or Please contact us' },
+            },
+            {
+              name: 'instructions',
+              type: 'text',
+              maxLength: 200,
+              admin: { placeholder: 'Please use your name as the reference.' },
+            },
+          ],
+        },
+        {
+          name: 'cheque',
+          type: 'group',
+          fields: [
+            {
+              name: 'payeeName',
+              type: 'text',
+              maxLength: 150,
+              admin: { placeholder: 'Our Moon Education' },
+            },
+            {
+              name: 'postalAddress',
+              type: 'textarea',
+              maxLength: 300,
+              admin: { placeholder: 'The Coach House, Hurstwood Lane...' },
+            },
+          ],
         },
       ],
     },

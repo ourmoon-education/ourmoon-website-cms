@@ -36,12 +36,11 @@ export const WhereWeWorkSettings: GlobalConfig = {
       type: 'collapsible',
       fields: [
         {
-          name: 'heroImageUrl',
-          type: 'text',
-          maxLength: 1000,
+          name: 'heroImage',
+          type: 'relationship',
+          relationTo: 'media',
           admin: {
-            description: 'URL of the hero background image.',
-            placeholder: 'https://...',
+            description: 'The hero background image.',
           },
         },
         {
@@ -138,12 +137,11 @@ export const WhereWeWorkSettings: GlobalConfig = {
           },
         },
         {
-          name: 'videoThumbnailUrl',
-          type: 'text',
-          maxLength: 1000,
+          name: 'videoThumbnail',
+          type: 'relationship',
+          relationTo: 'media',
           admin: {
-            description: 'URL of the video thumbnail image shown before play.',
-            placeholder: 'https://...',
+            description: 'The video thumbnail image shown before play.',
           },
         },
       ],

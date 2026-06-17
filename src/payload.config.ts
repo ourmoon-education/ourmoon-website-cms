@@ -51,14 +51,14 @@ export default buildConfig({
       icons: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     },
     components: {
-      beforeLogin: ['./components/GoogleLoginButton#GoogleLoginButton'],
+      beforeLogin: ['@/components/GoogleLoginButton#GoogleLoginButton'],
       graphics: {
-        Logo: './components/Logo#Logo',
-        Icon: './components/Icon#Icon',
+        Logo: '@/components/Logo#Logo',
+        Icon: '@/components/Icon#Icon',
       },
       views: {
         dashboard: {
-          Component: './components/Dashboard#Dashboard',
+          Component: '@/components/Dashboard#Dashboard',
         },
       },
     },

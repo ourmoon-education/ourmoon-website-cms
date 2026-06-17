@@ -318,6 +318,27 @@ const seed = async () => {
       },
       contactEmail: 'hello@ourmoon.org.uk',
       phone: '+44 (0)7720 287904',
+      enthuseUrl: 'https://enthuse.com/donate/ourmoon',
+      globalGivingUrl: 'https://globalgiving.org/projects/ourmoon',
+      maecenataUrl: 'https://maecenata.de/donate/ourmoon',
+      giftTiers: [
+        { amount: '£25', title: 'Books & supplies', description: 'Equip a student with the textbooks and study materials they need for the year.' },
+        { amount: '£50', title: 'A week of meals', description: 'Ensure a student on our residential campus is nourished and ready to learn.' },
+        { amount: '£75', title: 'A month of meals', description: 'Four weeks of nutritious meals for one student on the Young Leaders Programme.' },
+        { amount: '£150', title: 'University application support', description: 'Cover the cost of application materials, testing fees and guidance for one student.' },
+        { amount: '£250', title: 'Sponsor a scholar', description: 'Make a meaningful contribution toward the full cost of one student\'s programme place.' },
+        { amount: '£500', title: 'Full scholarship contribution', description: 'Cover a significant portion of the annual cost of supporting one of our students.' }
+      ],
+      bankTransfer: {
+        accountName: 'Our Moon Education',
+        sortCode: 'Please contact us',
+        accountNumber: 'Please contact us',
+        instructions: 'Please use your name as the reference.'
+      },
+      cheque: {
+        payeeName: 'Our Moon Education',
+        postalAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA'
+      },
     },
   })
   payload.logger.info('✅ Site settings seeded')

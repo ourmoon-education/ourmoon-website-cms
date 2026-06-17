@@ -53,12 +53,11 @@ export const WhoWeAreSettings: GlobalConfig = {
           },
         },
         {
-          name: 'foundingStoryImageUrl',
-          type: 'text',
-          maxLength: 1000,
+          name: 'foundingStoryImage',
+          type: 'relationship',
+          relationTo: 'media',
           admin: {
-            description: 'URL of the image shown alongside the founding story.',
-            placeholder: 'https://...',
+            description: 'Image shown alongside the founding story.',
           },
         },
       ],
