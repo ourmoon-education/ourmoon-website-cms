@@ -125,6 +125,19 @@ export const Events: CollectionConfig = {
       },
     },
     {
+      name: 'eventType',
+      type: 'select',
+      options: [
+        { label: 'In Person', value: 'in-person' },
+        { label: 'Online', value: 'online' },
+        { label: 'Hybrid', value: 'hybrid' },
+      ],
+      admin: {
+        description: 'How attendees can participate.',
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'startDate',
       type: 'date',
       required: true,
@@ -142,11 +155,28 @@ export const Events: CollectionConfig = {
       },
     },
     {
+      name: 'time',
+      type: 'text',
+      maxLength: 100,
+      admin: {
+        description: 'Display time string, e.g. "10:00 AM – 4:00 PM" or "Doors open at 6:30 PM".',
+        placeholder: '10:00 AM',
+      },
+    },
+    {
       name: 'description',
       type: 'richText',
       editor: richTextEditor(),
       admin: {
         description: 'Full event details, agenda, and what to expect.',
+      },
+    },
+    {
+      name: 'content',
+      type: 'richText',
+      editor: richTextEditor(),
+      admin: {
+        description: 'Extended event content shown on the event detail page.',
       },
     },
     {
@@ -172,6 +202,15 @@ export const Events: CollectionConfig = {
       maxLength: 500,
       admin: {
         description: 'Full URL to the registration or booking page.',
+        placeholder: 'https://...',
+      },
+    },
+    {
+      name: 'registrationUrl',
+      type: 'text',
+      maxLength: 500,
+      admin: {
+        description: 'Registration URL used by the frontend. Alias for registrationLink.',
         placeholder: 'https://...',
       },
     },
