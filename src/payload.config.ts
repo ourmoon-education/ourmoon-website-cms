@@ -25,6 +25,12 @@ import { StudentStories } from './collections/StudentStories'
 import { TeamMembers } from './collections/TeamMembers'
 import { ImpactStats } from './collections/ImpactStats'
 import { SiteSettings } from './globals/SiteSettings'
+import { ImpactPageSettings } from './globals/ImpactPageSettings'
+import { WhereWeWorkSettings } from './globals/WhereWeWorkSettings'
+import { FinanceGovernanceSettings } from './globals/FinanceGovernanceSettings'
+import { WhoWeAreSettings } from './globals/WhoWeAreSettings'
+import { EventsPageSettings } from './globals/EventsPageSettings'
+import { BlogPageSettings } from './globals/BlogPageSettings'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
@@ -78,7 +84,15 @@ export default buildConfig({
 
   // ─── Collections & Globals ───────────────────────────────────────────────
   collections: [Users, Media, Programmes, BlogPosts, Events, StudentStories, TeamMembers, ImpactStats],
-  globals: [SiteSettings],
+  globals: [
+    SiteSettings,
+    ImpactPageSettings,
+    WhereWeWorkSettings,
+    FinanceGovernanceSettings,
+    WhoWeAreSettings,
+    EventsPageSettings,
+    BlogPageSettings,
+  ],
 
   // ─── Editor ──────────────────────────────────────────────────────────────
   editor: lexicalEditor(),
