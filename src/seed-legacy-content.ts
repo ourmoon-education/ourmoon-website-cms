@@ -35,7 +35,8 @@ async function seedLegacyContent() {
               children: [
                 {
                   type: 'paragraph',
-                  children: [{ text: `Welcome to the ${prog.title}. Stay tuned for more details!`, type: 'text' }],
+                  version: 1,
+                  children: [{ text: `Welcome to the ${prog.title}. Stay tuned for more details!`, type: 'text', version: 1 }],
                 },
               ],
               direction: 'ltr',
@@ -79,7 +80,8 @@ async function seedLegacyContent() {
               children: [
                 {
                   type: 'paragraph',
-                  children: [{ text: 'Join us for our upcoming event!', type: 'text' }],
+                  version: 1,
+                  children: [{ text: 'Join us for our upcoming event!', type: 'text', version: 1 }],
                 },
               ],
               direction: 'ltr',
@@ -112,19 +114,17 @@ async function seedLegacyContent() {
       await payload.create({
         collection: 'student-stories',
         data: {
-          title: story.title,
           slug: story.slug,
           status: story.status,
-          publishedDate: new Date().toISOString(),
           studentName: story.studentName,
-          studentRole: story.studentRole,
           story: {
             root: {
               type: 'root',
               children: [
                 {
                   type: 'paragraph',
-                  children: [{ text: `Read about ${story.studentName}'s journey.`, type: 'text' }],
+                  version: 1,
+                  children: [{ text: `Read about ${story.studentName}'s journey.`, type: 'text', version: 1 }],
                 },
               ],
               direction: 'ltr',
