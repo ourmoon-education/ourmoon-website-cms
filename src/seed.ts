@@ -343,6 +343,77 @@ const seed = async () => {
   })
   payload.logger.info('✅ Site settings seeded')
 
+  // ─── Who We Are Settings ───────────────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'who-we-are-settings',
+    data: {
+      foundingStoryHeading: 'Born from a belief that talent knows no borders.',
+      foundingStoryText: 'Our Moon was founded in 2014 by Helen and Richard Leale-Green, who saw extraordinary potential in Zambia\'s youth being held back purely by circumstance. We started with five students. Today we have supported over 200 young leaders across five continents.',
+      valuesHeading: 'Our Values',
+      valuesIntro: 'Four principles that guide every decision we make.',
+      values: [
+        { icon: '✦', title: 'Integrity', description: 'We are honest, transparent and accountable in everything we do.' },
+        { icon: '🏆', title: 'Excellence', description: 'We hold ourselves and our students to the highest standards.' },
+        { icon: '🤝', title: 'Belonging', description: 'Every student belongs — we celebrate heritage and foster community.' },
+        { icon: '🚀', title: 'Agency', description: 'We give young people tools and confidence to own their futures.' },
+      ]
+    }
+  })
+  payload.logger.info('✅ Who We Are settings seeded')
+
+  // ─── Where We Work Settings ─────────────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'where-we-work-settings',
+    data: {
+      heroHeading: 'Rooted in Zambia. Reaching the world.',
+      heroSubheading: 'Our residential campus sits in Mbulo–Chipansha village in Zambia\'s Central Province. From here, we\'ve launched over 200 young leaders onto a global stage.',
+      zambiaDescription: 'Our campus in Chipansha village is the heart of Our Moon\'s operations. It\'s where the Young Leaders Programme runs, where students live, study and grow, and where our Zambia team works year-round.',
+      zambiaAddress: 'Chipansha Village, Chibombo District, Central Province, Zambia',
+      zambiaMapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3851.3414006155554!2d28.232230000000003!3d-14.862413!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x194091c6bf4cd2db%3A0xc6cb5a75369bb9c6!2sOur%20Moon%20Education%20Campus!5e0!3m2!1sen!2szm!4v1700000000000!5m2!1sen!2szm',
+      ukDescription: 'Our UK office coordinates fundraising, partnerships, communications and governance. We work with UK universities, schools and supporters to bring resources and opportunity to our students in Zambia.',
+      ukAddress: 'The Coach House, Hurstwood Lane, Tunbridge Wells, Kent TN4 8YA',
+      videoUrl: 'https://www.youtube.com/watch?v=yoRGCHuNj0Q',
+    }
+  })
+  payload.logger.info('✅ Where We Work settings seeded')
+
+  // ─── Finance Governance Settings ───────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'finance-governance-settings',
+    data: {
+      keyFigures: [
+        { value: '£450,000', label: 'Annual operational budget' },
+        { value: '94%', label: 'Goes directly to programmes and students' },
+        { value: '100%', label: 'Of student scholarships fully funded' }
+      ],
+      policyCards: [
+        { icon: 'Shield', title: 'Safeguarding Policy', description: 'All staff, trustees and volunteers undergo enhanced DBS checks and safeguarding training.' },
+        { icon: 'Lock', title: 'Data Protection (GDPR)', description: 'We handle all personal data in accordance with GDPR and the Data Protection Act 2018.' },
+        { icon: 'Scale', title: 'Equal Opportunities', description: 'We are committed to equality in all our work, regardless of background, gender, race or belief.' },
+        { icon: 'BarChart', title: 'Financial Controls', description: 'Our accounts are independently examined and filed with the Charity Commission annually.' }
+      ]
+    }
+  })
+  payload.logger.info('✅ Finance & Governance settings seeded')
+
+  // ─── Impact Page Settings ──────────────────────────────────────────────────
+  await (payload.updateGlobal as any)({
+    slug: 'impact-page-settings',
+    data: {
+      featuredQuote: "Our Moon didn't just change my future — it showed me I had the power to change my country's future too.",
+      featuredQuoteAuthor: 'Cathy Mwila',
+      featuredQuoteRole: 'YLP Alumni, now studying in the United States',
+      invertedBlockHeading: 'Why Our Work Matters',
+      invertedBlockIntro: 'Zambia has one of the youngest populations in the world, but access to high-quality, transformative higher education is extremely limited. We are bridge builders.',
+      invertedBlockItems: [
+        { icon: 'GraduationCap', title: 'Academic Excellence', description: 'Students gain access to top universities in Zambia, the UK, US, Canada and beyond.' },
+        { icon: 'Users', title: 'Global Networks', description: 'Alumni now work and study across five continents, building lifelong connections.' },
+        { icon: 'Sparkles', title: 'Community Leadership', description: 'Every scholar becomes a role model, creating ripple effects of aspiration in their home communities.' }
+      ]
+    }
+  })
+  payload.logger.info('✅ Impact page settings seeded')
+
   payload.logger.info('🌙 Seed complete!')
   process.exit(0)
 }

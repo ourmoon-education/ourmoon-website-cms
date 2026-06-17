@@ -206,15 +206,6 @@ export const Events: CollectionConfig = {
       },
     },
     {
-      name: 'registrationUrl',
-      type: 'text',
-      maxLength: 500,
-      admin: {
-        description: 'Registration URL used by the frontend. Alias for registrationLink.',
-        placeholder: 'https://...',
-      },
-    },
-    {
       name: 'featuredImage',
       type: 'upload',
       relationTo: 'media',
