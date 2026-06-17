@@ -4,36 +4,29 @@ import config from '@payload-config'
 
 export const runtime = 'nodejs'
 
+import jwt from 'jsonwebtoken'
+
 async function mintPayloadJWT(
   payloadSecret: string,
   cookiePrefix: string,
   userData: { id: string | number; email: string; role: string },
 ): Promise<{ token: string; cookieName: string }> {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
   const now = Math.floor(Date.now() / 1000)
-  const body = Buffer.from(
-    JSON.stringify({
+  
+  const token = jwt.sign(
+    {
       id: userData.id,
       email: userData.email,
       collection: 'users',
       role: userData.role,
       iat: now,
       exp: now + 7200, // 2 hours
-    }),
-  ).toString('base64url')
-
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(payloadSecret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
+    },
+    payloadSecret
   )
-  const sigBytes = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${header}.${body}`))
-  const sig = Buffer.from(sigBytes).toString('base64url')
 
   return {
-    token: `${header}.${body}.${sig}`,
+    token,
     cookieName: `${cookiePrefix ?? 'payload'}-token`,
   }
 }
