@@ -244,6 +244,29 @@ export const SiteSettings: GlobalConfig = {
       type: 'collapsible',
       fields: [
         {
+          name: 'footerNavigation',
+          type: 'array',
+          admin: {
+            description: 'Links shown in the "Explore" column of the footer. Leave empty to use the site defaults.',
+          },
+          fields: [
+            {
+              name: 'label',
+              type: 'text',
+              required: true,
+              maxLength: 60,
+              admin: { placeholder: 'e.g. Blog' },
+            },
+            {
+              name: 'href',
+              type: 'text',
+              required: true,
+              maxLength: 200,
+              admin: { placeholder: 'e.g. /blog' },
+            },
+          ],
+        },
+        {
           name: 'footerMission',
           type: 'textarea',
           maxLength: 400,
