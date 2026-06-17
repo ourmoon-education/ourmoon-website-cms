@@ -9,7 +9,7 @@ export const SiteSettings: GlobalConfig = {
   },
   access: {
     read: () => true,
-    update: isAdmin,
+    update: isAdminOrEditor,
   },
   hooks: {
     afterChange: [
