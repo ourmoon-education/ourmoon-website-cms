@@ -107,7 +107,24 @@ export async function GET(request: NextRequest) {
 
     const cookieName = `${payload.config.cookiePrefix || 'payload'}-token`
 
-    const response = NextResponse.redirect(adminUrl)
+    const response = new NextResponse(
+      `<html>
+        <head>
+          <meta http-equiv="refresh" content="0;url=/admin" />
+          <title>Logging in...</title>
+        </head>
+        <body>
+          <p>Redirecting to admin panel...</p>
+          <script>window.location.href = '/admin';</script>
+        </body>
+      </html>`,
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      }
+    )
 
     response.cookies.delete('google_oauth_state')
 
