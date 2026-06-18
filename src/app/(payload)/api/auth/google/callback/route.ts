@@ -12,24 +12,25 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
 
   const adminUrl = `${process.env.NEXT_PUBLIC_SERVER_URL ?? request.nextUrl.origin}/admin`
+  const loginUrl = `${adminUrl}/login`
 
   if (error) {
-    return NextResponse.redirect(`${adminUrl}?error=google_denied`)
+    return NextResponse.redirect(`${loginUrl}?error=google_denied`)
   }
 
   const storedState = request.cookies.get('google_oauth_state')?.value
   if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(`${adminUrl}?error=invalid_state`)
+    return NextResponse.redirect(`${loginUrl}?error=invalid_state`)
   }
 
   if (!code) {
-    return NextResponse.redirect(`${adminUrl}?error=missing_code`)
+    return NextResponse.redirect(`${loginUrl}?error=missing_code`)
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   if (!clientId || !clientSecret) {
-    return NextResponse.redirect(`${adminUrl}?error=sso_not_configured`)
+    return NextResponse.redirect(`${loginUrl}?error=sso_not_configured`)
   }
 
   const redirectUri =
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     if (!tokenRes.ok) {
       console.error('Google token exchange failed:', await tokenRes.text())
-      return NextResponse.redirect(`${adminUrl}?error=token_exchange_failed`)
+      return NextResponse.redirect(`${loginUrl}?error=token_exchange_failed`)
     }
 
     const { access_token } = (await tokenRes.json()) as { access_token: string }
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!userRes.ok) {
-      return NextResponse.redirect(`${adminUrl}?error=userinfo_failed`)
+      return NextResponse.redirect(`${loginUrl}?error=userinfo_failed`)
     }
 
     const googleUser = (await userRes.json()) as {
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!googleUser.verified_email) {
-      return NextResponse.redirect(`${adminUrl}?error=email_not_verified`)
+      return NextResponse.redirect(`${loginUrl}?error=email_not_verified`)
     }
 
     const payload = await getPayload({ config })
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       console.warn(`Google SSO: rejected login attempt from unknown email: ${googleUser.email}`)
-      return NextResponse.redirect(`${adminUrl}?error=not_invited`)
+      return NextResponse.redirect(`${loginUrl}?error=not_invited`)
     }
 
     const collectionConfig = payload.collections['users'].config
@@ -119,7 +120,8 @@ export async function GET(request: NextRequest) {
 
     return response
   } catch (err) {
-    console.error('Google SSO callback error:', err)
-    return NextResponse.redirect(`${adminUrl}?error=sso_error`)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Google SSO callback error:', message)
+    return NextResponse.redirect(`${loginUrl}?error=sso_error&detail=${encodeURIComponent(message)}`)
   }
 }
