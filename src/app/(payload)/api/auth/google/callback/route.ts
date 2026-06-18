@@ -108,16 +108,66 @@ export async function GET(request: NextRequest) {
     const cookieName = `${payload.config.cookiePrefix || 'payload'}-token`
 
     const response = new NextResponse(
-      `<html>
+      \`<!DOCTYPE html>
+      <html>
         <head>
-          <meta http-equiv="refresh" content="0;url=/admin" />
-          <title>Logging in...</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Login Successful</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              background-color: #f9fafb;
+            }
+            .container {
+              background: white;
+              padding: 2.5rem;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              text-align: center;
+              max-width: 400px;
+              width: 100%;
+            }
+            h1 {
+              color: #111827;
+              font-size: 1.5rem;
+              margin-top: 0;
+              margin-bottom: 0.5rem;
+            }
+            p {
+              color: #4b5563;
+              margin-bottom: 2rem;
+            }
+            a.button {
+              display: inline-block;
+              background-color: #000;
+              color: white;
+              text-decoration: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            a.button:hover {
+              background-color: #374151;
+            }
+          </style>
         </head>
         <body>
-          <p>Redirecting to admin panel...</p>
-          <script>window.location.href = '/admin';</script>
+          <div class="container">
+            <h1>Login Successful!</h1>
+            <p>You have been successfully authenticated with Google.</p>
+            <a href="/admin" class="button">Continue to Dashboard</a>
+          </div>
         </body>
-      </html>`,
+      </html>\`,
       {
         status: 200,
         headers: {
