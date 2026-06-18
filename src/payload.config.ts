@@ -144,21 +144,6 @@ export default buildConfig({
     prodMigrations: migrations,
   }),
 
-  // ─── Email ───────────────────────────────────────────────────────────────
-  email: nodemailerAdapter({
-    defaultFromAddress: process.env.SMTP_FROM_ADDRESS || 'info@ourmoon.org.uk',
-    defaultFromName: process.env.SMTP_FROM_NAME || 'OurMoon Education',
-    transportOptions: {
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      secure: process.env.SMTP_SECURE === 'true',
-    },
-  }),
-
   // ─── i18n ────────────────────────────────────────────────────────────────
   i18n: {
     supportedLanguages: { en, fr, es, de, ar },
