@@ -3,20 +3,22 @@ import React from 'react'
 
 export const DashboardLink: React.FC = () => {
   return (
-    <div className="nav-group">
-      <div className="nav-group__content">
-        <ul className="nav-group__list">
-          <li className="nav-group__list-item">
-            <Link 
-              href="/admin" 
-              className="nav__link" 
-              style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-            >
-              Dashboard
-            </Link>
-          </li>
-        </ul>
-      </div>
+    <div style={{ padding: '1rem', borderBottom: '1px solid var(--theme-elevation-100)', marginBottom: '1rem' }}>
+      <Link 
+        href="/admin" 
+        style={{ 
+          display: 'block', 
+          padding: '0.75rem 1rem', 
+          backgroundColor: 'var(--theme-success-500, #10b981)', 
+          color: 'white', 
+          textDecoration: 'none', 
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          textAlign: 'center'
+        }}
+      >
+        Go to Dashboard
+      </Link>
     </div>
   )
 }
