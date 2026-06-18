@@ -31,6 +31,9 @@ import { FinanceGovernanceSettings } from './globals/FinanceGovernanceSettings'
 import { WhoWeAreSettings } from './globals/WhoWeAreSettings'
 import { EventsPageSettings } from './globals/EventsPageSettings'
 import { BlogPageSettings } from './globals/BlogPageSettings'
+import { OurWorkSettings } from './globals/OurWorkSettings'
+import { GetInvolvedSettings } from './globals/GetInvolvedSettings'
+import { LegalPageSettings } from './globals/LegalPageSettings'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
@@ -92,6 +95,9 @@ export default buildConfig({
     WhoWeAreSettings,
     EventsPageSettings,
     BlogPageSettings,
+    OurWorkSettings,
+    GetInvolvedSettings,
+    LegalPageSettings,
   ],
 
   // ─── Editor ──────────────────────────────────────────────────────────────

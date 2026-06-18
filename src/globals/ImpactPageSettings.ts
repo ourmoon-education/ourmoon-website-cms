@@ -122,6 +122,31 @@ export const ImpactPageSettings: GlobalConfig = {
       ],
     },
 
+    // ─── Student Impact Bullets ──────────────────────────────────────────────
+    {
+      label: 'Student Impact Bullets',
+      type: 'collapsible',
+      fields: [
+        {
+          name: 'studentImpactBullets',
+          type: 'array',
+          maxRows: 8,
+          admin: {
+            description: 'Bullet points in the "Impact on Students" section.',
+          },
+          fields: [
+            {
+              name: 'text',
+              type: 'text',
+              required: true,
+              maxLength: 300,
+              admin: { placeholder: 'e.g. Our students gain places at top universities worldwide.' },
+            },
+          ],
+        },
+      ],
+    },
+
     // ─── Annual Reports ──────────────────────────────────────────────────────
     {
       label: 'Annual Reports',
