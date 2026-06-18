@@ -45,6 +45,16 @@ export default buildConfig({
   // ─── Admin UI ────────────────────────────────────────────────────────────
   admin: {
     user: Users.slug,
+    livePreview: {
+      url: ({ data, collectionConfig }) => {
+        const frontendUrl = process.env.FRONTEND_REVALIDATE_URL?.replace('/api/revalidate', '') || 'https://devnext.ourmoon.org.uk'
+        const secret = process.env.FRONTEND_REVALIDATE_SECRET || ''
+        const url = `/${collectionConfig?.slug}/${data?.slug || data?.id || ''}`
+        return `${frontendUrl}/api/draft?url=${encodeURIComponent(url)}&secret=${encodeURIComponent(secret)}`
+      },
+      collections: ['programmes', 'blog-posts', 'events', 'student-stories'],
+      globals: ['site-settings', 'impact-page-settings', 'where-we-work-settings', 'finance-governance-settings', 'who-we-are-settings', 'events-page-settings', 'blog-page-settings', 'our-work-settings', 'get-involved-settings', 'legal-page-settings'],
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
