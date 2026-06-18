@@ -109,16 +109,18 @@ export async function GET(request: NextRequest) {
       cookiePrefix: payload.config.cookiePrefix || 'payload',
       returnCookieAsObject: true,
       token,
-    }) as { name: string; value: string; path: string; httpOnly: boolean; secure: boolean; sameSite: 'lax' | 'strict' | 'none'; maxAge?: number }
+    }) as unknown as { name: string; value: string; path: string; httpOnly: boolean; secure: boolean; sameSite?: string; maxAge?: number }
 
     const response = NextResponse.redirect(adminUrl)
 
     response.cookies.delete('google_oauth_state')
 
+    const sameSite = ((cookieObj.sameSite ?? 'lax').toLowerCase()) as 'lax' | 'strict' | 'none'
+
     response.cookies.set(cookieObj.name, cookieObj.value, {
       httpOnly: cookieObj.httpOnly,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: cookieObj.sameSite || 'lax',
+      sameSite,
       path: cookieObj.path || '/',
       maxAge: collectionConfig.auth.tokenExpiration || 7200,
     })
