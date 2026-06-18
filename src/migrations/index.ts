@@ -4,6 +4,7 @@ import * as migration_20260607_204530 from './20260607_204530';
 import * as migration_20260614_000000_cms_full_integration from './20260614_000000_cms_full_integration';
 import * as migration_20260617_151014_prod_schema_sync from './20260617_151014_prod_schema_sync';
 import * as migration_20260618_000000_new_globals from './20260618_000000_new_globals';
+import * as migration_20260618_120000_fix_missing_schema from './20260618_120000_fix_missing_schema';
 
 export const migrations = [
   {
@@ -35,5 +36,10 @@ export const migrations = [
     up: migration_20260618_000000_new_globals.up,
     down: migration_20260618_000000_new_globals.down,
     name: '20260618_000000_new_globals',
+  },
+  {
+    up: migration_20260618_120000_fix_missing_schema.up,
+    down: migration_20260618_120000_fix_missing_schema.down,
+    name: '20260618_120000_fix_missing_schema',
   },
 ];
