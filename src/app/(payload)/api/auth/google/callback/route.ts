@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       cookiePrefix: payload.config.cookiePrefix || 'payload',
       returnCookieAsObject: true,
       token,
-    }) as { name: string; value: string; path: string; httpOnly: boolean; secure: boolean; sameSite: 'Lax' | 'Strict' | 'None'; maxAge?: number }
+    }) as { name: string; value: string; path: string; httpOnly: boolean; secure: boolean; sameSite: 'lax' | 'strict' | 'none'; maxAge?: number }
 
     const response = NextResponse.redirect(adminUrl)
 
