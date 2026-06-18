@@ -1,4 +1,25 @@
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+const ERROR_MESSAGES: Record<string, string> = {
+  google_denied: 'Google sign-in was cancelled.',
+  invalid_state: 'Login session expired or cookie blocked — please try again.',
+  missing_code: 'No authorisation code received from Google.',
+  sso_not_configured: 'Google SSO is not configured on this server.',
+  token_exchange_failed: 'Failed to exchange token with Google.',
+  userinfo_failed: 'Failed to fetch your Google profile.',
+  email_not_verified: 'Your Google account email is not verified.',
+  not_invited: 'Your Google account is not linked to any user in this CMS.',
+  sso_error: 'An unexpected error occurred during sign-in.',
+}
+
 export function GoogleLoginButton() {
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
+  const detail = searchParams.get('detail')
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? `Sign-in error: ${error}`) : null
+
   return (
     <div
       style={{
@@ -9,6 +30,26 @@ export function GoogleLoginButton() {
         marginBottom: '1.5rem',
       }}
     >
+      {errorMessage && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            borderRadius: '4px',
+            background: 'var(--theme-error-100, #fff0f0)',
+            border: '1px solid var(--theme-error-500, #e53e3e)',
+            color: 'var(--theme-error-700, #c53030)',
+            fontSize: '0.8125rem',
+          }}
+        >
+          <strong>Sign-in failed:</strong> {errorMessage}
+          {detail && (
+            <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', opacity: 0.8, wordBreak: 'break-all' }}>
+              {detail}
+            </div>
+          )}
+        </div>
+      )}
+
       <a
         href="/api/auth/google"
         style={{
