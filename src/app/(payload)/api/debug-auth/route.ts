@@ -1,26 +1,23 @@
-import { getPayload } from 'payload'
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
 import config from '@payload-config'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   const payload = await getPayload({ config })
   
-  const users = await payload.find({ collection: 'users' })
-  let migrations = null
-  try {
-    // Attempt to query the payload_migrations table if db is initialized
-    migrations = await payload.find({ collection: 'payload-migrations', limit: 10, sort: '-createdAt' })
-  } catch (e) {
-    migrations = { error: String(e) }
-  }
-    
+  // Read cookies manually
+  const allCookies = req.cookies.getAll()
+  const payloadToken = req.cookies.get(`${payload.config.cookiePrefix || 'payload'}-token`)?.value
+  
+  // Ask payload who is logged in
+  const { user } = await payload.auth({ headers: req.headers })
+  
   return NextResponse.json({
-    cookiePrefix: payload.config.cookiePrefix,
+    hasTokenCookie: !!payloadToken,
     cookieName: `${payload.config.cookiePrefix || 'payload'}-token`,
-    secretPrefix: payload.secret?.substring(0, 5),
-    users: users.docs.map(u => ({ email: u.email, role: u.role })),
-    migrations: migrations?.docs || migrations
+    allCookieNames: allCookies.map(c => c.name),
+    loggedInUser: user ? user.email : null,
   })
 }
