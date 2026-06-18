@@ -64,6 +64,7 @@ export default buildConfig({
           Component: './components/Dashboard#Dashboard',
         },
       },
+      beforeNavLinks: ['./components/DashboardNavNode#DashboardNavNode'],
     },
     livePreview: {
       // Must list collections explicitly for the Live Preview tab to appear
