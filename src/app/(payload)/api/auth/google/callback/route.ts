@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
     const cookieName = `${payload.config.cookiePrefix || 'payload'}-token`
 
     const response = new NextResponse(
-      \`<!DOCTYPE html>
+      `<!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
             <a href="/admin" class="button">Continue to Dashboard</a>
           </div>
         </body>
-      </html>\`,
+      </html>`,
       {
         status: 200,
         headers: {
