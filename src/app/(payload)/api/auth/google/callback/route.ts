@@ -77,17 +77,18 @@ export async function GET(request: NextRequest) {
 
     const payload = await getPayload({ config })
 
-    const existing = await payload.find({
+    const allUsers = await payload.find({
       collection: 'users',
-      where: { email: { equals: googleUser.email } },
-      limit: 1,
+      limit: 1000,
     })
 
-    const user = existing.docs[0]
+    const user = allUsers.docs.find(
+      (u) => u.email?.toLowerCase() === googleUser.email.toLowerCase()
+    )
 
     if (!user) {
       console.warn(`Google SSO: rejected login attempt from unknown email: ${googleUser.email}`)
-      return NextResponse.redirect(`${loginUrl}?error=not_invited`)
+      return NextResponse.redirect(`${loginUrl}?error=not_invited&detail=${encodeURIComponent(googleUser.email)}`)
     }
 
     const collectionConfig = payload.collections['users'].config
