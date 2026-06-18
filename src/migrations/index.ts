@@ -6,6 +6,7 @@ import * as migration_20260617_151014_prod_schema_sync from './20260617_151014_p
 import * as migration_20260618_000000_new_globals from './20260618_000000_new_globals';
 import * as migration_20260618_120000_fix_missing_schema from './20260618_120000_fix_missing_schema';
 import * as migration_20260618_150000_add_missing_enum_columns from './20260618_150000_add_missing_enum_columns';
+import * as migration_20260618_160000_fix_site_settings_columns from './20260618_160000_fix_site_settings_columns';
 
 export const migrations = [
   {
@@ -47,5 +48,10 @@ export const migrations = [
     up: migration_20260618_150000_add_missing_enum_columns.up,
     down: migration_20260618_150000_add_missing_enum_columns.down,
     name: '20260618_150000_add_missing_enum_columns',
+  },
+  {
+    up: migration_20260618_160000_fix_site_settings_columns.up,
+    down: migration_20260618_160000_fix_site_settings_columns.down,
+    name: '20260618_160000_fix_site_settings_columns',
   },
 ];

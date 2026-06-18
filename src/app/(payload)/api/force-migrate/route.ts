@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import { NextRequest, NextResponse } from 'next/server'
 import config from '@payload-config'
-import * as catchupMigration from '../../../../migrations/20260618_150000_add_missing_enum_columns'
+import * as catchupMigration from '../../../../migrations/20260618_160000_fix_site_settings_columns'
 
 export const runtime = 'nodejs'
 
