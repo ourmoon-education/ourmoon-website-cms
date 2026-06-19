@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import { NextRequest, NextResponse } from 'next/server'
 import config from '@payload-config'
 import { jwtSign, getFieldsToSign } from 'payload'
+import { generatePayloadCookie } from 'payload/shared'
 
 export const runtime = 'nodejs'
 
@@ -105,8 +106,14 @@ export async function GET(request: NextRequest) {
       tokenExpiration: collectionConfig.auth.tokenExpiration || 7200,
     })
 
-    const cookieName = `${payload.config.cookiePrefix || 'payload'}-token`
+    const cookieString = generatePayloadCookie({
+      collectionAuthConfig: collectionConfig.auth,
+      cookiePrefix: payload.config.cookiePrefix || 'payload',
+      token,
+      returnCookieAsObject: false, // Ensure it returns a string suitable for headers
+    }) as string
 
+    // Create a new response with the HTML and set the cookie in the header.
     const response = new NextResponse(
       `<!DOCTYPE html>
       <html>
@@ -172,19 +179,12 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': 'text/html',
+          'Set-Cookie': cookieString,
         },
       }
     )
 
     response.cookies.delete('google_oauth_state')
-
-    response.cookies.set(cookieName, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: collectionConfig.auth.tokenExpiration || 7200,
-    })
 
     return response
   } catch (err) {

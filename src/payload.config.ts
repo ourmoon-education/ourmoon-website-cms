@@ -110,10 +110,8 @@ export default buildConfig({
     'https://devnext.ourmoon.org.uk',
     'https://content.ourmoon.org.uk',
   ],
-  csrf: [
-    'https://devnext.ourmoon.org.uk',
-    'https://content.ourmoon.org.uk',
-  ],
+  // Empty CSRF array disables strict CSRF checks which strip cookies on redirected GET requests without Sec-Fetch-Site headers.
+  csrf: [],
 
   // ─── API Defaults ────────────────────────────────────────────────────────
   defaultDepth: 2,
