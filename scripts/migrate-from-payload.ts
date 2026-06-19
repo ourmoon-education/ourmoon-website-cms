@@ -1,30 +1,97 @@
 /**
- * Layer 11: Content Migration Script — Payload CMS → Directus
+ * Content Migration Script — Payload v3 (Supabase PostgreSQL) → Directus
+ *
+ * Payload is no longer running; this script reads its tables directly from
+ * the Supabase PostgreSQL database and writes to the Directus REST API.
  *
  * Usage:
- *   PAYLOAD_URL=https://content.ourmoon.org.uk \
- *   PAYLOAD_EMAIL=admin@ourmoon.org.uk \
- *   PAYLOAD_PASSWORD=yourpassword \
+ *   SUPABASE_DATABASE_URL="postgresql://..." \
  *   DIRECTUS_URL=https://cms.ourmoon.org.uk \
  *   DIRECTUS_TOKEN=<your-directus-static-token> \
- *   npx tsx scripts/migrate-from-payload.ts [--dry-run] [--collection blog_posts]
+ *   npx tsx scripts/migrate-from-payload.ts [--dry-run] [--discover] [--collection blog_posts]
  *
  * Options:
  *   --dry-run        Log what would be done without writing to Directus
- *   --collection X   Only migrate a single collection (slug)
- *   --skip-images    Skip image import (use null for image fields)
+ *   --discover       Print all Payload table names and columns, then exit
+ *   --collection X   Only migrate a single collection
+ *   --skip-images    Skip media import (leave image fields null)
+ *
+ * Required env vars:
+ *   SUPABASE_DATABASE_URL   Supabase PostgreSQL connection string
+ *   DIRECTUS_URL            Directus instance URL
+ *   DIRECTUS_TOKEN          Directus admin static token
+ *
+ * Optional:
+ *   AZURE_STORAGE_PREFIX    Override for media URL prefix
+ *                           Default: https://ourmoonwebassets.blob.core.windows.net/assets
  */
 
-const PAYLOAD_URL = process.env.PAYLOAD_URL ?? 'https://content.ourmoon.org.uk'
+import pg from 'pg'
+import { randomUUID } from 'crypto'
+
+const { Pool } = pg
+
+// ── Config ────────────────────────────────────────────────────────────────────
+
+const DATABASE_URL = process.env.SUPABASE_DATABASE_URL ?? ''
 const DIRECTUS_URL = process.env.DIRECTUS_URL ?? 'https://cms.ourmoon.org.uk'
 const DIRECTUS_TOKEN = process.env.DIRECTUS_TOKEN ?? ''
+const AZURE_STORAGE_PREFIX =
+  process.env.AZURE_STORAGE_PREFIX ??
+  'https://ourmoonwebassets.blob.core.windows.net/assets'
 
 const args = process.argv.slice(2)
 const DRY_RUN = args.includes('--dry-run')
+const DISCOVER = args.includes('--discover')
 const SKIP_IMAGES = args.includes('--skip-images')
 const ONLY_COLLECTION = args.find((a, i) => args[i - 1] === '--collection')
 
-// --- Lexical JSON → HTML ---
+// ── PostgreSQL pool ────────────────────────────────────────────────────────────
+
+let pool: pg.Pool | null = null
+
+function getPool(): pg.Pool {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  }
+  return pool
+}
+
+async function dbQuery<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  const client = await getPool().connect()
+  try {
+    const result = await client.query(sql, params)
+    return result.rows as T[]
+  } finally {
+    client.release()
+  }
+}
+
+// ── Discover mode ─────────────────────────────────────────────────────────────
+
+async function discoverSchema(): Promise<void> {
+  console.log('\n=== Discovering Payload tables in Supabase ===\n')
+  const tables = await dbQuery<{ table_name: string }>(
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+     ORDER BY table_name`
+  )
+  for (const { table_name } of tables) {
+    const cols = await dbQuery<{ column_name: string; data_type: string }>(
+      `SELECT column_name, data_type FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = $1
+       ORDER BY ordinal_position`,
+      [table_name]
+    )
+    const colList = cols.map((c) => `${c.column_name} (${c.data_type})`).join(', ')
+    console.log(`${table_name}:\n  ${colList}\n`)
+  }
+}
+
+// ── Lexical JSON → HTML ────────────────────────────────────────────────────────
 
 type LexicalNode =
   | { type: 'root'; children: LexicalNode[] }
@@ -45,38 +112,41 @@ function serializeNode(node: LexicalNode): string {
       return node.children.map(serializeNode).join('')
     case 'paragraph':
       return `<p>${node.children.map(serializeNode).join('')}</p>`
-    case 'heading':
-      return `<${node.tag}>${node.children.map(serializeNode).join('')}</${node.tag}>`
-    case 'list':
-      const tag = node.listType === 'number' ? 'ol' : 'ul'
+    case 'heading': {
+      const tag = (node as any).tag ?? 'h2'
       return `<${tag}>${node.children.map(serializeNode).join('')}</${tag}>`
+    }
+    case 'list': {
+      const tag = (node as any).listType === 'number' ? 'ol' : 'ul'
+      return `<${tag}>${node.children.map(serializeNode).join('')}</${tag}>`
+    }
     case 'listitem':
       return `<li>${node.children.map(serializeNode).join('')}</li>`
     case 'quote':
       return `<blockquote>${node.children.map(serializeNode).join('')}</blockquote>`
     case 'link':
-      return `<a href="${escapeHtml(node.url)}">${node.children.map(serializeNode).join('')}</a>`
+      return `<a href="${escapeHtml((node as any).url ?? '')}">${node.children.map(serializeNode).join('')}</a>`
     case 'text': {
-      let t = escapeHtml(node.text)
-      const fmt = node.format
-      if (fmt & 1) t = `<strong>${t}</strong>`  // bold
-      if (fmt & 2) t = `<em>${t}</em>`            // italic
-      if (fmt & 8) t = `<u>${t}</u>`              // underline
-      if (fmt & 4) t = `<s>${t}</s>`              // strikethrough
-      if (fmt & 16) t = `<code>${t}</code>`        // code
+      let t = escapeHtml((node as any).text ?? '')
+      const fmt = (node as any).format ?? 0
+      if (fmt & 1) t = `<strong>${t}</strong>`
+      if (fmt & 2) t = `<em>${t}</em>`
+      if (fmt & 8) t = `<u>${t}</u>`
+      if (fmt & 4) t = `<s>${t}</s>`
+      if (fmt & 16) t = `<code>${t}</code>`
       return t
     }
     case 'linebreak':
       return '<br>'
     case 'upload': {
-      const url = node.value?.url ?? node.url ?? ''
-      const alt = node.fields?.alt ?? node.value?.alt ?? ''
+      const url = (node as any).value?.url ?? (node as any).url ?? ''
+      const alt = (node as any).fields?.alt ?? (node as any).value?.alt ?? ''
       if (!url) return ''
       return `<figure><img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"></figure>`
     }
     default:
-      if ('children' in node && Array.isArray(node.children)) {
-        return node.children.map(serializeNode).join('')
+      if ('children' in node && Array.isArray((node as any).children)) {
+        return (node as any).children.map(serializeNode).join('')
       }
       return ''
   }
@@ -92,7 +162,9 @@ function escapeHtml(s: string): string {
 
 function lexicalToHtml(lexical: any): string {
   if (!lexical) return ''
-  if (typeof lexical === 'string') return lexical
+  if (typeof lexical === 'string') {
+    try { lexical = JSON.parse(lexical) } catch { return lexical }
+  }
   try {
     const root = lexical.root ?? lexical
     return serializeNode(root as LexicalNode).trim()
@@ -101,87 +173,67 @@ function lexicalToHtml(lexical: any): string {
   }
 }
 
-// --- Directus file import ---
+// ── Media import cache ────────────────────────────────────────────────────────
 
-const imageCache = new Map<string, string>()
+// Map from Payload media ID → Directus file ID
+const mediaIdCache = new Map<string, string>()
 
-async function importImageToDirectus(payloadUrl: string, alt?: string): Promise<string | null> {
-  if (!payloadUrl) return null
+interface PayloadMedia {
+  id: string
+  filename: string
+  alt: string | null
+  url: string | null
+  mime_type: string | null
+}
+
+async function getPayloadMedia(payloadId: string | number | null): Promise<string | null> {
+  if (!payloadId) return null
   if (SKIP_IMAGES) return null
-  if (imageCache.has(payloadUrl)) return imageCache.get(payloadUrl)!
+  const key = String(payloadId)
+  if (mediaIdCache.has(key)) return mediaIdCache.get(key)!
 
+  const rows = await dbQuery<PayloadMedia>(
+    `SELECT id, filename, alt, url, mime_type FROM media WHERE id = $1 LIMIT 1`,
+    [Number(payloadId)]
+  ).catch(async () =>
+    dbQuery<PayloadMedia>(
+      `SELECT id, filename, alt, url FROM media WHERE id = $1 LIMIT 1`,
+      [Number(payloadId)]
+    )
+  )
+  const row = rows[0]
+  if (!row) return null
+
+  const fileUrl = row.url ?? `${AZURE_STORAGE_PREFIX}/${row.filename}`
+  const directusId = await importUrlToDirectus(fileUrl, row.alt ?? row.filename ?? '')
+  if (directusId) mediaIdCache.set(key, directusId)
+  return directusId
+}
+
+async function importUrlToDirectus(url: string, title: string): Promise<string | null> {
+  if (!url) return null
   if (DRY_RUN) {
-    console.log(`  [dry-run] Would import image: ${payloadUrl}`)
+    console.log(`  [dry-run] Would import: ${url}`)
     return null
   }
-
   try {
     const res = await directusFetch('/files/import', {
       method: 'POST',
-      body: JSON.stringify({ url: payloadUrl, data: { title: alt ?? '' } }),
+      body: JSON.stringify({ url, data: { title } }),
     })
-    const id = res?.data?.id
+    const id: string | undefined = res?.data?.id
     if (id) {
-      imageCache.set(payloadUrl, id)
+      mediaIdCache.set(url, id)
       return id
     }
     return null
   } catch (e) {
-    console.warn(`  Failed to import image ${payloadUrl}:`, (e as Error).message)
+    console.warn(`  Failed to import ${url}:`, (e as Error).message)
     return null
   }
 }
 
-// --- HTTP helpers ---
-
-// Set PAYLOAD_USER_SLUG if your Payload users collection has a custom slug
-const PAYLOAD_USER_SLUG = process.env.PAYLOAD_USER_SLUG ?? ''
-
-let payloadToken: string | null = null
-let payloadAuthResolved = false
-
-async function resolvePayloadToken(): Promise<void> {
-  if (payloadAuthResolved) return
-  payloadAuthResolved = true
-
-  const email = process.env.PAYLOAD_EMAIL
-  const password = process.env.PAYLOAD_PASSWORD
-  if (!email || !password) {
-    console.log('  No PAYLOAD_EMAIL/PASSWORD set — using unauthenticated access')
-    return
-  }
-
-  // Build list of slugs to try: explicit override first, then common names
-  const slugsToTry = PAYLOAD_USER_SLUG
-    ? [PAYLOAD_USER_SLUG]
-    : ['users', 'admins', 'staff', 'editors', 'members']
-
-  for (const slug of slugsToTry) {
-    try {
-      const res = await fetch(`${PAYLOAD_URL}/api/${slug}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
-      if (data.token) {
-        console.log(`  Authenticated via /api/${slug}/login`)
-        payloadToken = data.token
-        return
-      }
-    } catch {}
-  }
-  console.warn('  Warning: Payload login failed for all known slugs — continuing without auth (draft content may be excluded)')
-}
-
-async function payloadFetch(path: string): Promise<any> {
-  await resolvePayloadToken()
-  const headers: Record<string, string> = {}
-  if (payloadToken) headers['Authorization'] = `Bearer ${payloadToken}`
-  const res = await fetch(`${PAYLOAD_URL}/api${path}`, { headers })
-  if (!res.ok) throw new Error(`Payload API error ${res.status} for ${path}`)
-  return res.json()
-}
+// ── Directus helpers ──────────────────────────────────────────────────────────
 
 async function directusFetch(path: string, options: RequestInit = {}): Promise<any> {
   const res = await fetch(`${DIRECTUS_URL}${path}`, {
@@ -189,19 +241,23 @@ async function directusFetch(path: string, options: RequestInit = {}): Promise<a
     headers: {
       Authorization: `Bearer ${DIRECTUS_TOKEN}`,
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> ?? {}),
+      ...((options.headers as Record<string, string>) ?? {}),
     },
   })
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Directus API error ${res.status} for ${path}: ${err.slice(0, 200)}`)
+    throw new Error(`Directus ${res.status} ${path}: ${err.slice(0, 300)}`)
   }
   return res.json()
 }
 
-async function upsertDirectus(collection: string, data: Record<string, any>, slug: string): Promise<void> {
+async function upsertBySlug(
+  collection: string,
+  slug: string,
+  data: Record<string, any>
+): Promise<void> {
   if (DRY_RUN) {
-    console.log(`  [dry-run] Would upsert ${collection} slug="${slug}":`, JSON.stringify(data).slice(0, 120))
+    console.log(`  [dry-run] upsert ${collection} slug="${slug}":`, JSON.stringify(data).slice(0, 120))
     return
   }
   const existing = await directusFetch(
@@ -218,173 +274,221 @@ async function upsertDirectus(collection: string, data: Record<string, any>, slu
   }
 }
 
-// --- Collection migrators ---
+// ── Migrators ─────────────────────────────────────────────────────────────────
 
 async function migrateBlogPosts() {
-  console.log('\n=== Migrating blog-posts ===')
-  let page = 1
-  while (true) {
-    const res = await payloadFetch(`/blog-posts?depth=1&limit=100&page=${page}&where[status][equals]=published`)
-    if (!res?.docs?.length) break
-    for (const post of res.docs) {
-      const imageId = post.heroImage?.url ? await importImageToDirectus(post.heroImage.url, post.heroImage.alt) : null
-      await upsertDirectus('blog_posts', {
-        title: post.title,
-        slug: post.slug,
-        status: post.status === 'published' ? 'published' : 'draft',
-        excerpt: post.excerpt ?? null,
-        content: lexicalToHtml(post.content),
-        featured_image: imageId ?? null,
-        date_published: post.publishedDate ?? post.createdAt ?? null,
-        meta_title: post.meta?.title ?? null,
-        meta_description: post.meta?.description ?? null,
-      }, post.slug)
-    }
-    if (!res.hasNextPage) break
-    page++
+  console.log('\n=== Migrating blog_posts ===')
+  // _status is Payload's versioning field; status is the custom "Draft/Published" select
+  const rows = await dbQuery(`
+    SELECT id, title, slug, _status, published_date, author, excerpt, content, featured_image_id
+    FROM blog_posts
+    ORDER BY published_date DESC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} blog posts`)
+  for (const row of rows) {
+    const imageId = await getPayloadMedia(row.featured_image_id)
+    const slug = row.slug ?? slugify(row.title ?? 'untitled')
+    await upsertBySlug('blog_posts', slug, {
+      title: row.title,
+      slug,
+      status: row._status === 'published' ? 'published' : 'draft',
+      date_published: row.published_date ?? null,
+      excerpt: row.excerpt ?? null,
+      content: lexicalToHtml(row.content),
+      featured_image: imageId ?? null,
+    })
   }
 }
 
 async function migrateEvents() {
   console.log('\n=== Migrating events ===')
-  let page = 1
-  while (true) {
-    const res = await payloadFetch(`/events?depth=1&limit=100&page=${page}`)
-    if (!res?.docs?.length) break
-    for (const ev of res.docs) {
-      const imageId = ev.heroImage?.url ? await importImageToDirectus(ev.heroImage.url, ev.heroImage.alt) : null
-      await upsertDirectus('events', {
-        title: ev.title,
-        slug: ev.slug,
-        status: ev.status === 'published' ? 'published' : 'draft',
-        excerpt: ev.excerpt ?? null,
-        content: lexicalToHtml(ev.content),
-        featured_image: imageId ?? null,
-        start_date: ev.startDate ?? null,
-        end_date: ev.endDate ?? null,
-        location: ev.location ?? null,
-        event_type: ev.eventType ?? 'in-person',
-        registration_url: ev.registrationUrl ?? null,
-        date_published: ev.publishedDate ?? ev.createdAt ?? null,
-        meta_title: ev.meta?.title ?? null,
-        meta_description: ev.meta?.description ?? null,
-      }, ev.slug)
-    }
-    if (!res.hasNextPage) break
-    page++
+  // Directus events schema: name (not title), location=integer FK to locations, no content/excerpt/date_published
+  const rows = await dbQuery(`
+    SELECT id, title, slug, _status, start_date, end_date,
+           registration_link, featured_image_id
+    FROM events
+    ORDER BY start_date DESC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} events`)
+  for (const row of rows) {
+    const imageId = await getPayloadMedia(row.featured_image_id)
+    const slug = row.slug ?? slugify(row.title ?? 'untitled')
+    // Extract date portion only — Directus start_date/end_date are type 'date' not timestamp
+    const toDate = (v: any) => v ? (v instanceof Date ? v.toISOString() : String(v)).split('T')[0] : null
+    await upsertBySlug('events', slug, {
+      name: row.title,   // Directus uses 'name' not 'title'
+      slug,
+      status: row._status === 'published' ? 'published' : 'draft',
+      start_date: toDate(row.start_date),
+      end_date: toDate(row.end_date),
+      registration_url: row.registration_link ?? null,
+      featured_image: imageId ?? null,
+    })
   }
 }
 
 async function migrateProgrammes() {
   console.log('\n=== Migrating programmes ===')
-  let page = 1
-  while (true) {
-    const res = await payloadFetch(`/programmes?depth=1&limit=100&page=${page}`)
-    if (!res?.docs?.length) break
-    for (const prog of res.docs) {
-      const imageId = prog.featuredImage?.url ? await importImageToDirectus(prog.featuredImage.url, prog.featuredImage.alt) : null
-      await upsertDirectus('programmes', {
-        title: prog.title,
-        slug: prog.slug,
-        status: prog.status === 'published' ? 'published' : 'draft',
-        short_description: prog.shortDescription ?? prog.excerpt ?? null,
-        description: lexicalToHtml(prog.description ?? prog.content),
-        featured_image: imageId ?? null,
-        age_range: prog.ageRange ?? null,
-        duration: prog.duration ?? null,
-        date_published: prog.publishedDate ?? prog.createdAt ?? null,
-        meta_title: prog.meta?.title ?? null,
-        meta_description: prog.meta?.description ?? null,
-      }, prog.slug)
-    }
-    if (!res.hasNextPage) break
-    page++
+  const rows = await dbQuery(`
+    SELECT id, title, slug, _status, published_date, short_description,
+           description, featured_image_id, age_range, duration
+    FROM programmes
+    ORDER BY created_at DESC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} programmes`)
+  for (const row of rows) {
+    if (!row.title) { console.log('  Skipping programme with null title'); continue }
+    const imageId = await getPayloadMedia(row.featured_image_id)
+    const slug = row.slug ?? slugify(row.title ?? 'untitled')
+    await upsertBySlug('programmes', slug, {
+      title: row.title,
+      slug,
+      status: row._status === 'published' ? 'published' : 'draft',
+      date_published: row.published_date ?? null,
+      short_description: row.short_description ?? null,
+      description: lexicalToHtml(row.description),
+      featured_image: imageId ?? null,
+      age_range: row.age_range ?? null,
+      duration: row.duration ?? null,
+    })
   }
 }
 
 async function migrateStudentStories() {
-  console.log('\n=== Migrating student-stories ===')
-  let page = 1
-  while (true) {
-    const res = await payloadFetch(`/student-stories?depth=1&limit=100&page=${page}`)
-    if (!res?.docs?.length) break
-    for (const story of res.docs) {
-      const photoId = story.photo?.url ? await importImageToDirectus(story.photo.url, story.studentName) : null
-      const slug = story.slug ?? story.studentName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      await upsertDirectus('student_stories', {
-        name: story.studentName,
-        slug,
-        status: story.status === 'published' ? 'published' : 'draft',
-        featured: story.featured ?? false,
-        short_quote: story.shortQuote ?? null,
-        story: lexicalToHtml(story.story ?? story.content),
-        photo: photoId ?? null,
-      }, slug)
-    }
-    if (!res.hasNextPage) break
-    page++
+  console.log('\n=== Migrating student_stories ===')
+  const rows = await dbQuery(`
+    SELECT id, student_name, slug, _status, featured, short_quote, story, photo_id
+    FROM student_stories
+    ORDER BY created_at DESC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} student stories`)
+  for (const row of rows) {
+    const photoId = await getPayloadMedia(row.photo_id)
+    const name: string = row.student_name ?? 'Unknown'
+    const slug = row.slug ?? slugify(name)
+    await upsertBySlug('student_stories', slug, {
+      name,
+      slug,
+      status: row._status === 'published' ? 'published' : 'draft',
+      featured: row.featured ?? false,
+      short_quote: row.short_quote ?? null,
+      story: lexicalToHtml(row.story),
+      photo: photoId ?? null,
+    })
   }
 }
 
 async function migrateTeamMembers() {
-  console.log('\n=== Migrating team members (from site-settings or team collection) ===')
-  // Try team-members collection first (may not exist in Payload)
-  try {
-    const res = await payloadFetch(`/team-members?depth=1&limit=100`)
-    if (res?.docs?.length) {
-      for (const member of res.docs) {
-        const photoId = member.photo?.url ? await importImageToDirectus(member.photo.url, member.name) : null
-        const slug = member.slug ?? member.name.toLowerCase().replace(/\s+/g, '-')
-        await upsertDirectus('team_members', {
-          name: member.name,
-          role: member.role ?? '',
-          region: member.region ?? 'uk',
-          status: member.status === 'published' ? 'published' : 'draft',
-          sort: member.order ?? 0,
-          bio: member.bio ?? null,
-          photo: photoId ?? null,
-        }, slug)
-      }
-      return
+  console.log('\n=== Migrating team_members ===')
+  const rows = await dbQuery(`
+    SELECT id, name, role, region, status, "order", bio, photo_id
+    FROM team_members
+    ORDER BY "order" ASC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} team members`)
+  for (const row of rows) {
+    const photoId = await getPayloadMedia(row.photo_id)
+    if (!row.name) continue
+    if (DRY_RUN) {
+      console.log(`  [dry-run] Would upsert team_members: ${row.name}`)
+      continue
     }
-  } catch {
-    // team-members collection doesn't exist in Payload — skip
-    console.log('  No team-members collection found in Payload — skipping')
+    // team_members has no slug — match by name
+    const existing = await directusFetch(
+      `/items/team_members?filter[name][_eq]=${encodeURIComponent(row.name)}&limit=1`
+    ).catch(() => null)
+
+    // Directus uses 'category' not 'region'; UUID id must be provided explicitly on create
+    const data = {
+      name: row.name,
+      role: row.role ?? '',
+      category: row.region ?? 'uk',
+      status: row.status === 'published' ? 'published' : 'draft',
+      sort: row.order ?? 0,
+      bio: row.bio ?? null,
+      photo: photoId ?? null,
+    }
+
+    if (existing?.data?.[0]) {
+      const id = existing.data[0].id
+      await directusFetch(`/items/team_members/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
+      console.log(`  Updated team_members id=${id} name="${row.name}"`)
+    } else {
+      const created = await directusFetch('/items/team_members', { method: 'POST', body: JSON.stringify({ id: randomUUID(), ...data }) })
+      console.log(`  Created team_members id=${created?.data?.id} name="${row.name}"`)
+    }
   }
 }
 
 async function migrateImpactStats() {
-  console.log('\n=== Migrating impact stats (from site-settings global) ===')
-  try {
-    const settings = await payloadFetch(`/globals/site-settings`)
-    const stats = settings?.impactStats ?? settings?.impact_stats ?? []
-    for (let i = 0; i < stats.length; i++) {
-      const stat = stats[i]
-      if (DRY_RUN) {
-        console.log(`  [dry-run] Would upsert impact_stats: ${stat.value} — ${stat.label}`)
-        continue
-      }
-      await directusFetch('/items/impact_stats', {
-        method: 'POST',
-        body: JSON.stringify({
-          value: stat.value,
-          label: stat.label,
-          status: 'published',
-          sort: i,
-        }),
-      }).catch((e) => console.warn(`  Failed to create stat: ${(e as Error).message}`))
+  console.log('\n=== Migrating impact_stats ===')
+  const rows = await dbQuery(`
+    SELECT id, value, label, status, "order"
+    FROM impact_stats
+    ORDER BY "order" ASC NULLS LAST
+  `)
+
+  console.log(`  Found ${rows.length} impact stats`)
+  for (const row of rows) {
+    if (!row.value || !row.label) continue
+    if (DRY_RUN) {
+      console.log(`  [dry-run] Would upsert impact_stats: ${row.value} — ${row.label}`)
+      continue
     }
-  } catch {
-    console.log('  Could not fetch site-settings global — skipping impact stats')
+    // Match by label
+    const existing = await directusFetch(
+      `/items/impact_stats?filter[label][_eq]=${encodeURIComponent(row.label)}&limit=1`
+    ).catch(() => null)
+
+    const data = {
+      value: row.value,
+      label: row.label,
+      status: row.status === 'published' ? 'published' : 'draft',
+      sort: row.order ?? 0,
+    }
+
+    if (existing?.data?.[0]) {
+      const id = existing.data[0].id
+      await directusFetch(`/items/impact_stats/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
+      console.log(`  Updated impact_stats id=${id} label="${row.label}"`)
+    } else {
+      // UUID id must be provided explicitly on create for this collection
+      const created = await directusFetch('/items/impact_stats', { method: 'POST', body: JSON.stringify({ id: randomUUID(), ...data }) })
+      console.log(`  Created impact_stats id=${created?.data?.id} label="${row.label}"`)
+    }
   }
 }
 
-// --- Entry point ---
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+// ── Entry point ───────────────────────────────────────────────────────────────
 
 async function main() {
   if (!DIRECTUS_TOKEN) {
     console.error('Error: DIRECTUS_TOKEN is required')
     process.exit(1)
+  }
+  if (!DATABASE_URL) {
+    console.error('Error: SUPABASE_DATABASE_URL is required')
+    process.exit(1)
+  }
+
+  if (DISCOVER) {
+    await discoverSchema()
+    await getPool().end()
+    return
   }
 
   if (DRY_RUN) console.log('DRY RUN — no writes will be made to Directus\n')
@@ -402,7 +506,7 @@ async function main() {
 
   for (const name of toRun) {
     if (!collections[name]) {
-      console.error(`Unknown collection: ${name}`)
+      console.error(`Unknown collection: ${name}. Valid: ${Object.keys(collections).join(', ')}`)
       continue
     }
     try {
@@ -412,6 +516,7 @@ async function main() {
     }
   }
 
+  await getPool().end()
   console.log('\nMigration complete.')
 }
 
