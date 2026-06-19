@@ -134,47 +134,50 @@ async function importImageToDirectus(payloadUrl: string, alt?: string): Promise<
 
 // --- HTTP helpers ---
 
-// Set PAYLOAD_USER_SLUG=admins if your Payload users collection is named 'admins'
-const PAYLOAD_USER_SLUG = process.env.PAYLOAD_USER_SLUG ?? 'users'
+// Set PAYLOAD_USER_SLUG if your Payload users collection has a custom slug
+const PAYLOAD_USER_SLUG = process.env.PAYLOAD_USER_SLUG ?? ''
 
 let payloadToken: string | null = null
-let payloadAuthSkipped = false
+let payloadAuthResolved = false
 
-async function getPayloadToken(): Promise<string | null> {
-  if (payloadToken) return payloadToken
-  if (payloadAuthSkipped) return null
+async function resolvePayloadToken(): Promise<void> {
+  if (payloadAuthResolved) return
+  payloadAuthResolved = true
 
   const email = process.env.PAYLOAD_EMAIL
   const password = process.env.PAYLOAD_PASSWORD
   if (!email || !password) {
-    console.log('  No PAYLOAD_EMAIL/PASSWORD — trying unauthenticated access')
-    payloadAuthSkipped = true
-    return null
+    console.log('  No PAYLOAD_EMAIL/PASSWORD set — using unauthenticated access')
+    return
   }
 
-  // Try configured slug, then fall back to the other common one
-  const slugsToTry = [PAYLOAD_USER_SLUG, PAYLOAD_USER_SLUG === 'users' ? 'admins' : 'users']
+  // Build list of slugs to try: explicit override first, then common names
+  const slugsToTry = PAYLOAD_USER_SLUG
+    ? [PAYLOAD_USER_SLUG]
+    : ['users', 'admins', 'staff', 'editors', 'members']
+
   for (const slug of slugsToTry) {
-    const res = await fetch(`${PAYLOAD_URL}/api/${slug}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const data = await res.json()
-    if (data.token) {
-      console.log(`  Authenticated via /api/${slug}/login`)
-      payloadToken = data.token
-      return payloadToken
-    }
-    console.log(`  /api/${slug}/login failed: ${data.errors?.[0]?.message ?? JSON.stringify(data).slice(0, 80)}`)
+    try {
+      const res = await fetch(`${PAYLOAD_URL}/api/${slug}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (data.token) {
+        console.log(`  Authenticated via /api/${slug}/login`)
+        payloadToken = data.token
+        return
+      }
+    } catch {}
   }
-  throw new Error('Payload login failed for all known slugs. Set PAYLOAD_USER_SLUG=<your-collection-slug>')
+  console.warn('  Warning: Payload login failed for all known slugs — continuing without auth (draft content may be excluded)')
 }
 
 async function payloadFetch(path: string): Promise<any> {
-  const token = await getPayloadToken()
+  await resolvePayloadToken()
   const headers: Record<string, string> = {}
-  if (token) headers['Authorization'] = `Bearer ${token}`
+  if (payloadToken) headers['Authorization'] = `Bearer ${payloadToken}`
   const res = await fetch(`${PAYLOAD_URL}/api${path}`, { headers })
   if (!res.ok) throw new Error(`Payload API error ${res.status} for ${path}`)
   return res.json()
